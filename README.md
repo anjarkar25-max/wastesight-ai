@@ -3,6 +3,8 @@
 > **AI-powered computer vision edge-sorting system for real-time waste segregation.**  
 > *Built for **Arbiter Hacks V1** — Theme Track: Rethinking Waste*
 
+### 🌐 Live App Demo: [https://wastesight-ai-od2we5hnbdhqcd9n5ycwqv.streamlit.app](https://wastesight-ai-od2we5hnbdhqcd9n5ycwqv.streamlit.app)
+
 ![Status](https://img.shields.io/badge/Status-In%20Development-eab308?style=flat-square)
 ![Track](https://img.shields.io/badge/Track-Rethinking%20Waste-22c55e?style=flat-square)
 ![AI](https://img.shields.io/badge/Model-YOLOv8%20%7C%20TFLite-3b82f6?style=flat-square)
