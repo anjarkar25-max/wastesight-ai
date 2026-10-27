@@ -5,6 +5,7 @@ from PIL import Image
 import numpy as np
 import pandas as pd
 import cv2
+import hashlib
 from datetime import datetime
 
 st.set_page_config(
@@ -74,6 +75,8 @@ if "co2_saved_g" not in st.session_state:
     st.session_state.co2_saved_g = 0
 if "audit_log" not in st.session_state:
     st.session_state.audit_log = []
+if "last_scan_id" not in st.session_state:
+    st.session_state.last_scan_id = None
 if "category_counts" not in st.session_state:
     st.session_state.category_counts = {
         "Dry Recyclable": 0,
@@ -98,7 +101,7 @@ sidebar_scans = st.sidebar.empty()
 sidebar_weight = st.sidebar.empty()
 sidebar_co2 = st.sidebar.empty()
 
-# Top 4-Column Dashboard Placeholder (populated at end of run for zero-lag updates)
+# Top 4-Column Dashboard Placeholder
 dashboard_placeholder = st.empty()
 
 # Comprehensive Sorting Rules with CO2e Factors & Resin Codes
@@ -305,7 +308,6 @@ SORTING_RULES = {
     }
 }
 
-# --- CHANGE #1 IS RIGHT HERE INSIDE speak_guidance ---
 def speak_guidance(text_to_speak):
     """Uses native browser Web Speech API for zero-latency hands-free voice guidance."""
     clean_text = text_to_speak.replace("/", " or ").replace("—", ", ").replace('"', '').replace("'", "").replace("\n", " ")
@@ -364,6 +366,10 @@ with tab_scan:
         if input_file is None:
             st.info("👈 Upload a photo or take a camera snapshot on the left to run real-time YOLOv8 waste detection and voice guidance.")
         else:
+            file_bytes = input_file.getvalue()
+            current_scan_id = hashlib.md5(file_bytes).hexdigest() + f"_{conf_threshold}_{contaminant_check}"
+            is_new_scan = (st.session_state.last_scan_id != current_scan_id)
+
             image = Image.open(input_file).convert("RGB")
             img_array = np.array(image)
 
@@ -426,28 +432,28 @@ with tab_scan:
                         "tip": "Ensure item is clean and dry before placing in the recycling bin."
                     }).copy()
 
-                    # Override if user flagged heavy food/grease contamination on paper/cardboard/plastic
                     if contaminant_check and rule["category"] == "Dry Recyclable" and label in ["kagit", "karton", "plastik", "cup", "bowl"]:
                         rule["bin"] = "🟥 Red/Green Bin — Contaminated (Do Not Recycle!)"
                         rule["badge_bg"] = "#b91c1c"
                         rule["tip"] = "⚠️ CONTAMINATION ALERT: Because this item is heavily soiled with food/grease, placing it in the Blue Bin will ruin surrounding recyclables. Compost soiled paper or rinse plastic thoroughly first!"
 
-                    st.session_state.scans += 1
-                    st.session_state.diverted_g += rule["weight_g"]
-                    st.session_state.co2_saved_g += rule["co2_g"]
-                    st.session_state.category_counts[rule["category"]] = st.session_state.category_counts.get(rule["category"], 0) + 1
+                    # Only increment session counters & audit log if this is a freshly uploaded/changed scan!
+                    if is_new_scan:
+                        st.session_state.scans += 1
+                        st.session_state.diverted_g += rule["weight_g"]
+                        st.session_state.co2_saved_g += rule["co2_g"]
+                        st.session_state.category_counts[rule["category"]] = st.session_state.category_counts.get(rule["category"], 0) + 1
 
-                    st.session_state.audit_log.append({
-                        "Timestamp": datetime.now().strftime("%H:%M:%S"),
-                        "Detected Item": rule["name"],
-                        "Material / Resin": rule["resin"],
-                        "Assigned Bin": rule["bin"],
-                        "Confidence": f"{conf*100:.1f}%",
-                        "Weight (g)": rule["weight_g"],
-                        "CO2e Saved (g)": rule["co2_g"]
-                    })
+                        st.session_state.audit_log.append({
+                            "Timestamp": datetime.now().strftime("%H:%M:%S"),
+                            "Detected Item": rule["name"],
+                            "Material / Resin": rule["resin"],
+                            "Assigned Bin": rule["bin"],
+                            "Confidence": f"{conf*100:.1f}%",
+                            "Weight (g)": rule["weight_g"],
+                            "CO2e Saved (g)": rule["co2_g"]
+                        })
 
-                    # --- CHANGE #2 IS RIGHT HERE INSIDE THE LOOP ---
                     voice_line = f"{rule['name']} detected. {rule['bin']}. {rule['tip']}"
                     if voice_line not in speech_summary:
                         speech_summary.append(voice_line)
@@ -464,8 +470,10 @@ with tab_scan:
                         st.caption(f"Confidence: **{conf*100:.1f}%** | Engine: *{engine_name}* | Est. Mass: **{rule['weight_g']}g** | CO₂e Prevented: **{rule['co2_g']}g**")
                         st.info(f"**💡 Preparation Protocol:** {rule['tip']}")
 
-                if enable_voice and speech_summary:
-                    speak_guidance(" ".join(speech_summary[:2]))
+                if is_new_scan:
+                    st.session_state.last_scan_id = current_scan_id
+                    if enable_voice and speech_summary:
+                        speak_guidance(" ".join(speech_summary[:2]))
 
 # ==========================================
 # TAB 2: HUMAN VS. AI WISH-CYCLING BENCHMARK
@@ -525,7 +533,6 @@ with tab_quiz:
         correct_count = sum(1 for q in quiz_items if user_answers[q["id"]] == q["correct"])
         human_acc = (correct_count / len(quiz_items)) * 100
         human_contam = 100 - human_acc
-        ai_acc = 100.0
 
         c1, c2, c3 = st.columns(3)
         c1.metric("Unassisted Human Sorting Accuracy", f"{human_acc:.0f}%", f"{correct_count}/5 Correct")
@@ -585,9 +592,18 @@ with tab_map:
         {"Facility Name": "SWaCH Cooperative Dry Waste Collection Center", "Stream": "🟦 Dry Recyclables & E-Waste", "City": "Pune", "lat": 18.5204, "lon": 73.8567, "Hours": "8:00 AM – 5:00 PM"}
     ])
 
-    st.map(hubs_data, latitude="lat", longitude="lon", size=120, color="#10b981")
+    selected_city = st.radio(
+        "📍 Filter Collection Hubs by City:",
+        ["Nashik", "Mumbai", "Pune", "All Cities"],
+        horizontal=True
+    )
+
+    filtered_hubs = hubs_data if selected_city == "All Cities" else hubs_data[hubs_data["City"] == selected_city]
+    pin_radius = 600 if selected_city != "All Cities" else 4500
+
+    st.map(filtered_hubs, latitude="lat", longitude="lon", size=pin_radius, color="#10b981")
     st.dataframe(
-        hubs_data[["Facility Name", "Stream", "City", "Hours"]],
+        filtered_hubs[["Facility Name", "Stream", "City", "Hours"]],
         use_container_width=True,
         hide_index=True
     )
