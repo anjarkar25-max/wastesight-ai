@@ -305,9 +305,10 @@ SORTING_RULES = {
     }
 }
 
+# --- CHANGE #1 IS RIGHT HERE INSIDE speak_guidance ---
 def speak_guidance(text_to_speak):
     """Uses native browser Web Speech API for zero-latency hands-free voice guidance."""
-    clean_text = text_to_speak.replace('"', '').replace("'", "").replace("\n", " ")
+    clean_text = text_to_speak.replace("/", " or ").replace("—", ", ").replace('"', '').replace("'", "").replace("\n", " ")
     js = f"""
     <script>
         if ('speechSynthesis' in window) {{
@@ -446,7 +447,10 @@ with tab_scan:
                         "CO2e Saved (g)": rule["co2_g"]
                     })
 
-                    speech_summary.append(f"{rule['name']} detected. {rule['bin']}. {rule['tip']}")
+                    # --- CHANGE #2 IS RIGHT HERE INSIDE THE LOOP ---
+                    voice_line = f"{rule['name']} detected. {rule['bin']}. {rule['tip']}"
+                    if voice_line not in speech_summary:
+                        speech_summary.append(voice_line)
 
                     with st.container(border=True):
                         st.markdown(
