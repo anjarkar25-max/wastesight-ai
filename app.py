@@ -25,8 +25,9 @@ if "diverted_g" not in st.session_state:
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("📊 Live Impact Tracker")
-st.sidebar.metric("Items Segregated", st.session_state.scans)
-st.sidebar.metric("Waste Diverted from Landfill", f"{st.session_state.diverted_g} g")
+# 1. Create empty placeholders in the sidebar first
+scans_metric = st.sidebar.empty()
+weight_metric = st.sidebar.empty()
 
 # Comprehensive rules mapping custom Waste-TACO classes + common household/food/e-waste items
 SORTING_RULES = {
@@ -238,3 +239,7 @@ if input_file is not None:
                 st.markdown(f"### {rule['name']} ({conf*100:.1f}% confidence)")
                 st.markdown(f"**Recommended Bin:** {rule['bin']}")
                 st.info(f"**Preparation Tip:** {rule['tip']}")
+
+# 2. Update the sidebar metrics at the very end so the latest scan counts appear immediately!
+scans_metric.metric("Items Segregated", st.session_state.scans)
+weight_metric.metric("Waste Diverted from Landfill", f"{st.session_state.diverted_g} g")
