@@ -77,9 +77,7 @@ Each participant segregated 20 physical items (ranging from clean PET bottles an
 1. **Round 1 (Unassisted Baseline):** Participants sorted items into Blue (Dry), Green (Wet), Black (E-Waste), or Red (Domestic Reject) relying solely on intuition.
 2. **Round 2 (WasteSight AI Pro Assisted):** Participants scanned items using WasteSight AI's real-time computer vision and followed the spoken triage protocol.
 
-<p align="center">
-  <img src="trial_benchmark.png" alt="Empirical User Trial Results" width="850">
-</p>
+![Empirical User Trial Results](trial_benchmark.png)
 
 ### Trial Performance Metrics
 
