@@ -752,4 +752,96 @@ with tab_analytics:
 # ==========================================
 with tab_map:
     st.subheader("🗺️ Authorized Municipal Hubs, Scrap Centers & Biomethanation Plants")
-    st.write("Route segregated items to authorized
+    st.write("Route segregated items to authorized scrap buyers, biomethanation units, and MRF stations:")
+
+    hubs_df = pd.DataFrame(FACILITIES_DB)
+
+    selected_city = st.radio(
+        "📍 Filter Facilities by City:",
+        ["All Cities", "Nashik", "Mumbai", "Pune"],
+        horizontal=True
+    )
+
+    filtered_hubs = hubs_df if selected_city == "All Cities" else hubs_df[hubs_df["city"] == selected_city]
+
+    city_views = {
+        "Nashik": {"lat": 19.98, "lon": 73.77, "zoom": 11},
+        "Mumbai": {"lat": 19.11, "lon": 72.87, "zoom": 11},
+        "Pune": {"lat": 18.52, "lon": 73.85, "zoom": 11},
+        "All Cities": {"lat": 19.25, "lon": 73.40, "zoom": 7}
+    }
+    view = city_views[selected_city]
+
+    st.map(
+        filtered_hubs,
+        latitude="lat",
+        longitude="lon",
+        size=400,
+        color="#10b981",
+        zoom=view["zoom"]
+    )
+    st.dataframe(
+        filtered_hubs[["name", "type", "city", "hours", "contact"]],
+        use_container_width=True,
+        hide_index=True
+    )
+
+# ==========================================
+# TAB 5: SCRAP-TO-CASH & CIRCULAR MARKETPLACE
+# ==========================================
+with tab_market:
+    st.subheader("💰 Scrap-to-Cash Calculator & Circular Marketplace")
+    st.write("Turn your household waste into income or zero-cost organic fertilizer rather than sending it to overflowing landfills.")
+
+    col_calc, col_guides = st.columns([1.1, 1], gap="large")
+
+    with col_calc:
+        st.markdown("#### 💵 Live Household Scrap Resale Calculator")
+        st.caption("Benchmark scrap prices across Maharashtra (Nashik, Pune, Mumbai):")
+
+        c1, c2 = st.columns(2)
+        with c1:
+            kg_newspaper = st.number_input("📰 Newspaper / Raddi (kg)", min_value=0.0, value=5.0, step=0.5)
+            kg_cardboard = st.number_input("📦 Corrugated Cardboard (kg)", min_value=0.0, value=3.0, step=0.5)
+            kg_bottles = st.number_input("🍶 PET Plastic Bottles (kg)", min_value=0.0, value=2.0, step=0.5)
+        with c2:
+            kg_metal = st.number_input("🥫 Tin / Metal Scrap (kg)", min_value=0.0, value=1.0, step=0.5)
+            kg_alucans = st.number_input("🥤 Aluminum Cans (kg)", min_value=0.0, value=0.5, step=0.1)
+            kg_ewaste = st.number_input("📱 Small E-Waste / Peripherals (kg)", min_value=0.0, value=0.5, step=0.1)
+
+        val_newspaper = kg_newspaper * 14.0
+        val_cardboard = kg_cardboard * 12.0
+        val_bottles = kg_bottles * 18.0
+        val_metal = kg_metal * 30.0
+        val_alucans = kg_alucans * 110.0
+        val_ewaste = kg_ewaste * 150.0
+
+        total_earnings = val_newspaper + val_cardboard + val_bottles + val_metal + val_alucans + val_ewaste
+        total_diverted_kg = kg_newspaper + kg_cardboard + kg_bottles + kg_metal + kg_alucans + kg_ewaste
+
+        st.markdown("---")
+        m_cash1, m_cash2 = st.columns(2)
+        m_cash1.metric("Estimated Cash Payout", f"₹{total_earnings:.2f}", "From Verified Scrap Dealer")
+        m_cash2.metric("Total Clean Recyclables", f"{total_diverted_kg:.1f} kg", "Diverted from Landfill")
+
+        st.info("💡 **Pro-Tip for Societies:** An apartment complex of 50 flats generates ~120 kg of cardboard and ₹2,500–₹4,000 monthly in scrap revenue when segregated at source!")
+
+    with col_guides:
+        st.markdown("#### 🌱 Core Home Upcycling Principles")
+        st.markdown("""
+        1. **Separate Clean from Soiled:** Clean paper and unsoiled plastics have direct cash scrap value. Keep them dry!
+        2. **Feed Soil, Don't Fill Landfills:** Kitchen scraps that cannot be eaten rot in landfills and emit methane ($\text{CH}_4$). At home, their potassium, phosphorus, and nitrogen feed plants directly.
+        3. **Safe E-Waste Channeling:** Never mix dead batteries or old USB chargers with household trash to prevent toxic lithium and lead leaching.
+        """)
+
+# Populate Top Metrics
+with dashboard_placeholder.container():
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("📦 Items Segregated", st.session_state.scans, "Live Session")
+    m2.metric("⚖️ Waste Diverted from Landfill", f"{st.session_state.diverted_g} g", "Source Segregated")
+    m3.metric("🌿 CO₂e Emissions Prevented", f"{st.session_state.co2_saved_g} g", "Lifecycle Offset")
+    m4.metric("🛡️ Edge Triage Engines", f"Dual {active_engine_name.split()[0]} + LiteRT", "42.7 MB .tflite Ready")
+
+sidebar_scans.metric("Items Segregated", st.session_state.scans)
+sidebar_weight.metric("Landfill Diverted", f"{st.session_state.diverted_g} g")
+sidebar_co2.metric("CO₂e Prevented", f"{st.session_state.co2_saved_g} g")
