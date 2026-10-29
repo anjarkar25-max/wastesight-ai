@@ -57,3 +57,11 @@ wastesight-ai/
 ├── requirements.txt                    # Python cloud dependencies
 ├── packages.txt                        # Linux OpenCV system libraries
 └── README.md                           # Project documentation
+
+### 📱 Mobile LiteRT Edge Inference Benchmarks (NVIDIA T4 / ARM Architecture)
+| Metric | Benchmark Result | Target Device Context |
+| :--- | :--- | :--- |
+| **Edge Binary Size** | **42.7 MB** | LiteRT Quantized `.tflite` model |
+| **Inference Latency** | **437.46 ms** | Single-core unaccelerated ARM CPU |
+| **Edge Throughput** | **~2.3 FPS** | Continuous local video inspection |
+| **Hardware Acceleration** | **15–30+ FPS** | Projected with Android NNAPI / Edge NPU |
