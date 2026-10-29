@@ -20,7 +20,6 @@ st.set_page_config(
 # Custom Responsive UI & Mobile-First Styling
 st.markdown("""
 <style>
-    /* Viewport & Header Responsiveness */
     .main-header {
         background: linear-gradient(90deg, #059669 0%, #10b981 50%, #047857 100%);
         padding: 1.2rem 1.5rem;
@@ -58,7 +57,17 @@ st.markdown("""
         font-weight: 600;
         margin-left: 0.5rem;
     }
-    /* Mobile-Specific Adaptations (<768px) */
+    .cash-tag {
+        display: inline-block;
+        background-color: #064e3b;
+        color: #34d399;
+        border: 1px solid #059669;
+        padding: 0.2rem 0.65rem;
+        border-radius: 6px;
+        font-size: clamp(0.7rem, 1.8vw, 0.8rem);
+        font-weight: 700;
+        margin-left: 0.4rem;
+    }
     @media (max-width: 768px) {
         .block-container {
             padding: 1rem 0.8rem 2rem 0.8rem !important;
@@ -69,9 +78,6 @@ st.markdown("""
         div[data-testid="stMetricLabel"] {
             font-size: 0.75rem !important;
         }
-        div[data-testid="stHorizontalBlock"] {
-            gap: 0.4rem !important;
-        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -79,8 +85,8 @@ st.markdown("""
 # Header Banner
 st.markdown("""
 <div class="main-header">
-    <h1>♻️ WasteSight AI Pro — Edge Computer Vision Waste Triage</h1>
-    <p>Real-Time Material Segregation, Contamination Prevention & Municipal Impact Analytics</p>
+    <h1>♻️ WasteSight AI Pro — Circular Waste Triage & Resale Marketplace</h1>
+    <p>Edge Computer Vision, Home Bio-Fertilizer Protocols, Scrap Resale Pricing & Drop-Off Routing</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -119,9 +125,9 @@ sidebar_scans = st.sidebar.empty()
 sidebar_weight = st.sidebar.empty()
 sidebar_co2 = st.sidebar.empty()
 
-# Top 4-Column Metric Dashboard Placeholder
 dashboard_placeholder = st.empty()
 
+# Comprehensive Material, Resin, Home-Circular Action & Resale Scrap Rates
 SORTING_RULES = {
     "plastik": {
         "name": "Plastic Packaging / Bottle",
@@ -131,7 +137,9 @@ SORTING_RULES = {
         "resin": "PET #1 / HDPE #2",
         "weight_g": 25,
         "co2_g": 62,
-        "tip": "Rinse off any liquid or food residue, remove the cap, and crush the bottle before placing it in the Blue Dry Bin."
+        "scrap_price_kg": 18,
+        "circular_route": "💵 Sell to Local Kabadiwala (Scrap Value: ₹16–₹20/kg). Rinse and crush to save storage volume.",
+        "tip": "Rinse off any liquid or food residue, remove the cap, and crush the bottle before storing or selling."
     },
     "metal": {
         "name": "Metal / Aluminum Can",
@@ -141,7 +149,9 @@ SORTING_RULES = {
         "resin": "ALU #41 / FE #40",
         "weight_g": 15,
         "co2_g": 135,
-        "tip": "Empty all liquid, rinse briefly, and place in the Dry Recyclable bin. Recycling aluminum saves 95% of raw production energy."
+        "scrap_price_kg": 110,
+        "circular_route": "💵 Highest Resale Value (₹100–₹120/kg for aluminum; ₹30/kg for tin/steel scrap). Sell to verified recyclers.",
+        "tip": "Empty all liquid, rinse briefly, and place in the Dry Recyclable bin. Aluminum can be recycled infinitely."
     },
     "cam": {
         "name": "Glass Bottle / Jar",
@@ -151,7 +161,9 @@ SORTING_RULES = {
         "resin": "GLS #70–72",
         "weight_g": 180,
         "co2_g": 95,
-        "tip": "Rinse clean. If cracked or broken, wrap securely in newspaper and label clearly to protect sanitation workers."
+        "scrap_price_kg": 3,
+        "circular_route": "🔄 Reuse jars at home for kitchen pantry storage or sell intact beer/beverage bottles (₹2–₹3 per intact bottle).",
+        "tip": "Rinse clean. If cracked, wrap securely in newspaper and label clearly to protect collection workers."
     },
     "kagit": {
         "name": "Paper Sheet / Packaging",
@@ -161,6 +173,8 @@ SORTING_RULES = {
         "resin": "PAP #22",
         "weight_g": 10,
         "co2_g": 28,
+        "scrap_price_kg": 14,
+        "circular_route": "💵 Resell as Raddi / Newspaper (₹12–₹15/kg) or shred for home composting carbon bedding ('Browns').",
         "tip": "Keep clean and dry. Greasy or food-soiled paper cannot be pulped and must go into Wet Compost or Reject waste."
     },
     "karton": {
@@ -171,7 +185,9 @@ SORTING_RULES = {
         "resin": "PAP #20 (Corrugated)",
         "weight_g": 85,
         "co2_g": 110,
-        "tip": "Flatten the box completely to save collection truck volume and peel off any plastic packing tape."
+        "scrap_price_kg": 12,
+        "circular_route": "💵 Sell flattened boxes to scrap dealers (₹10–₹14/kg) or tear into strips as brown compost mulch for potting soil.",
+        "tip": "Flatten the box completely to save space and remove plastic packing tape before selling or recycling."
     },
     "kopuk": {
         "name": "Styrofoam / Thermocol",
@@ -181,7 +197,9 @@ SORTING_RULES = {
         "resin": "PS #6 (Non-Recyclable Foam)",
         "weight_g": 12,
         "co2_g": 5,
-        "tip": "Expanded Polystyrene (Thermocol) contaminates recycling streams. Keep out of the Blue Bin and place in Reject waste."
+        "scrap_price_kg": 0,
+        "circular_route": "🚫 Zero scrap value. Keep out of Blue Bin. Reuse blocks as garden drainage base under planter pots.",
+        "tip": "Expanded Polystyrene contaminates recycling streams. Keep out of the Blue Bin and route to domestic reject."
     },
     "bottle": {
         "name": "Plastic Beverage Bottle",
@@ -191,67 +209,45 @@ SORTING_RULES = {
         "resin": "PET #1",
         "weight_g": 30,
         "co2_g": 75,
-        "tip": "Empty liquid, rinse, crush the bottle to save space, and place in the Blue Dry Recyclable bin."
-    },
-    "cup": {
-        "name": "Disposable Cup / Container",
-        "category": "Dry Recyclable",
-        "bin": "🟦 Blue Bin (or 🟥 Reject if wax-lined)",
-        "badge_bg": "#1d4ed8",
-        "resin": "PP #5 / C/PAP #81",
-        "weight_g": 15,
-        "co2_g": 32,
-        "tip": "Rinse out liquid. Clear rigid plastic cups go in Dry Recycling; poly-coated paper coffee cups go in Reject waste."
-    },
-    "wine glass": {
-        "name": "Glassware / Jar",
-        "category": "Dry Recyclable",
-        "bin": "🟦 Blue Bin — Dry Waste (Glass)",
-        "badge_bg": "#0369a1",
-        "resin": "GLS #70",
-        "weight_g": 150,
-        "co2_g": 80,
-        "tip": "Rinse clean and wrap carefully if chipped or broken before disposal."
-    },
-    "bowl": {
-        "name": "Food Bowl / Takeout Container",
-        "category": "Dry Recyclable",
-        "bin": "🟦 Blue Bin — Dry Waste (PP #5)",
-        "badge_bg": "#1d4ed8",
-        "resin": "PP #5",
-        "weight_g": 40,
-        "co2_g": 68,
-        "tip": "Scrape any leftover food into the Green Wet Bin first, then rinse the container before placing in the Blue Dry Bin."
+        "scrap_price_kg": 18,
+        "circular_route": "💵 Sell with dry plastic scrap (₹16–₹20/kg) or upcycle into DIY drip irrigation stakes for balcony plants.",
+        "tip": "Empty liquid, rinse, crush the bottle to save space, and bundle with household dry recyclables."
     },
     "banana": {
         "name": "Organic Fruit Peel / Food Scrap",
         "category": "Wet Compost",
-        "bin": "🟩 Green Bin — Wet Waste (Compost)",
+        "bin": "🟩 Green Bin — Wet Waste (Bio-Fertilizer)",
         "badge_bg": "#15803d",
         "resin": "BIO / Organic",
         "weight_g": 45,
         "co2_g": 90,
-        "tip": "Place directly into the Green Wet Waste bin for aerobic composting or biomethanation. Never seal inside a plastic bag."
+        "scrap_price_kg": 0,
+        "circular_route": "🌱 Home Fertilizer: High in Potassium & Phosphorus. Soak peels in water for 48 hrs for liquid plant feed, or add to pot compost.",
+        "tip": "Place directly into your wet compost bin. Rich in potassium; ideal for flowering balcony plants."
     },
     "apple": {
         "name": "Organic Fruit / Food Waste",
         "category": "Wet Compost",
-        "bin": "🟩 Green Bin — Wet Waste (Compost)",
+        "bin": "🟩 Green Bin — Wet Waste (Bio-Fertilizer)",
         "badge_bg": "#15803d",
         "resin": "BIO / Organic",
         "weight_g": 50,
         "co2_g": 95,
-        "tip": "Dispose of in the Green Wet Waste bin to prevent landfill methane emissions."
+        "scrap_price_kg": 0,
+        "circular_route": "🌱 Home Fertilizer: Fast-decomposing nitrogen 'Green'. Mix with dry brown leaves or shredded paper for rich black compost.",
+        "tip": "Dispose of in the Green Wet Waste bin or kitchen compost bin to prevent landfill methane emissions."
     },
     "orange": {
         "name": "Citrus Peel / Organic Scrap",
         "category": "Wet Compost",
-        "bin": "🟩 Green Bin — Wet Waste (Compost)",
+        "bin": "🟩 Green Bin — Wet Waste (Bio-Enzyme)",
         "badge_bg": "#15803d",
-        "resin": "BIO / Organic",
+        "resin": "BIO / Citrus",
         "weight_g": 45,
         "co2_g": 88,
-        "tip": "Place directly in the Green Wet Waste bin for municipal composting."
+        "scrap_price_kg": 0,
+        "circular_route": "✨ Bio-Cleaner: Ferment citrus peels with jaggery and water (1:3:10 ratio) for 3 months to make chemical-free home floor cleaner.",
+        "tip": "Do not add excessive citrus to vermicompost (earthworms dislike high acidity); use for aerobic composting or bio-enzyme."
     },
     "pizza": {
         "name": "Food Scrap & Soiled Box",
@@ -261,7 +257,9 @@ SORTING_RULES = {
         "resin": "BIO / Soiled PAP",
         "weight_g": 80,
         "co2_g": 120,
-        "tip": "Leftover crusts and grease-soaked cardboard go in the Green Wet Bin. Tear off clean cardboard lids for the Blue Dry Bin."
+        "scrap_price_kg": 0,
+        "circular_route": "🌱 Tear the greasy cardboard bottom into coin-sized bits and bury in home compost; tear off the clean lid to sell as raddi.",
+        "tip": "Grease ruins paper pulping machines. Compost greasy cardboard and recycle only clean portions."
     },
     "cell phone": {
         "name": "Mobile Phone / Electronic Device",
@@ -271,7 +269,9 @@ SORTING_RULES = {
         "resin": "WEEE / Li-Ion Battery",
         "weight_g": 170,
         "co2_g": 1100,
-        "tip": "Contains lithium-ion batteries and precious metals. Never throw in household bins—drop at an authorized E-Waste center."
+        "scrap_price_kg": 150,
+        "circular_route": "💰 Trade-In / E-Waste Value: Cashify / Croma Buyback gives ₹500–₹5,000, or PCB-authorized e-waste recycler gives ₹150/kg for circuit scrap.",
+        "tip": "Never dispose of lithium-ion devices with regular trash. Back up and wipe your data before drop-off."
     },
     "laptop": {
         "name": "Laptop / Computer Hardware",
@@ -281,47 +281,9 @@ SORTING_RULES = {
         "resin": "WEEE / E-Waste",
         "weight_g": 1200,
         "co2_g": 4500,
+        "scrap_price_kg": 250,
+        "circular_route": "💰 Buyback / Refurbish: Old motherboards and laptop scrap fetch ₹200–₹350/kg through authorized PCB recyclers.",
         "tip": "Wipe personal data and hand over to a certified E-Waste collection drive or PCB-authorized recycler."
-    },
-    "mouse": {
-        "name": "Electronic Peripheral (Mouse)",
-        "category": "E-Waste",
-        "bin": "⬛ Black Bin — Authorized E-Waste Hub",
-        "badge_bg": "#334155",
-        "resin": "WEEE / E-Waste",
-        "weight_g": 80,
-        "co2_g": 310,
-        "tip": "Remove alkaline batteries for hazardous collection and place the device in the E-Waste bin."
-    },
-    "keyboard": {
-        "name": "Electronic Keyboard",
-        "category": "E-Waste",
-        "bin": "⬛ Black Bin — Authorized E-Waste Hub",
-        "badge_bg": "#334155",
-        "resin": "WEEE / E-Waste",
-        "weight_g": 400,
-        "co2_g": 850,
-        "tip": "Route to an E-Waste recycler for copper circuit and ABS plastic recovery."
-    },
-    "book": {
-        "name": "Paper / Book / Magazine",
-        "category": "Dry Recyclable",
-        "bin": "🟦 Blue Bin — Dry Waste (Paper)",
-        "badge_bg": "#1d4ed8",
-        "resin": "PAP #22",
-        "weight_g": 200,
-        "co2_g": 240,
-        "tip": "Donate if usable, or keep dry and place in the Blue Dry Recyclable bin."
-    },
-    "scissors": {
-        "name": "Scrap Metal / Sharp Tool",
-        "category": "Dry Recyclable",
-        "bin": "🟦 Blue Bin — Dry Waste (Metal)",
-        "badge_bg": "#1d4ed8",
-        "resin": "FE #40 (Steel)",
-        "weight_g": 65,
-        "co2_g": 190,
-        "tip": "Wrap sharp blades in thick paper and tape securely before placing in the Dry Metal bin."
     }
 }
 
@@ -358,11 +320,13 @@ def load_models():
 
 custom_model, general_model, active_engine_name = load_models()
 
-tab_scan, tab_quiz, tab_analytics, tab_map = st.tabs([
+# Main Application Tabs (Now featuring Tab 5 Marketplace)
+tab_scan, tab_quiz, tab_analytics, tab_map, tab_market = st.tabs([
     "📷 AI Waste Scanner",
     "🧪 Human vs. AI Benchmark",
     "📊 Impact Analytics & Audit Log",
-    "🗺️ E-Waste & Recycling Map"
+    "🗺️ Drop-Off & Recycler Map",
+    "💰 Scrap-to-Cash & Circular Market"
 ])
 
 # ==========================================
@@ -389,7 +353,7 @@ with tab_scan:
     with col_results:
         st.markdown(f"#### 2. Real-Time Triage ({active_engine_name})")
         if input_file is None:
-            st.info("👈 Upload a photo or take a camera snapshot on the left to run real-time YOLOv8 waste detection and voice guidance.")
+            st.info("👈 Upload a photo or take a camera snapshot on the left to run real-time YOLOv8 waste detection, home routing, and resale pricing.")
         else:
             file_bytes = input_file.getvalue()
             current_scan_id = hashlib.md5(file_bytes).hexdigest() + f"_{conf_threshold}_{contaminant_check}"
@@ -454,13 +418,15 @@ with tab_scan:
                         "resin": "GEN-REC",
                         "weight_g": 20,
                         "co2_g": 45,
+                        "scrap_price_kg": 10,
+                        "circular_route": "Route to authorized municipal dry waste sorting station.",
                         "tip": "Ensure item is clean and dry before placing in the recycling bin."
                     }).copy()
 
                     if contaminant_check and rule["category"] == "Dry Recyclable" and label in ["kagit", "karton", "plastik", "cup", "bowl"]:
                         rule["bin"] = "🟥 Red/Green Bin — Contaminated (Do Not Recycle!)"
                         rule["badge_bg"] = "#b91c1c"
-                        rule["tip"] = "⚠️ CONTAMINATION ALERT: Because this item is heavily soiled with food/grease, placing it in the Blue Bin will ruin surrounding recyclables. Compost soiled paper or rinse plastic thoroughly first!"
+                        rule["tip"] = "⚠️ CONTAMINATION ALERT: Food/grease will spoil paper/plastic recycling batches. Compost soiled paper or wash plastic before sorting!"
 
                     if is_new_scan:
                         st.session_state.scans += 1
@@ -475,7 +441,8 @@ with tab_scan:
                             "Assigned Bin": rule["bin"],
                             "Confidence": f"{conf*100:.1f}%",
                             "Weight (g)": rule["weight_g"],
-                            "CO2e Saved (g)": rule["co2_g"]
+                            "CO2e Saved (g)": rule["co2_g"],
+                            "Est Scrap Value": f"₹{rule['scrap_price_kg']}/kg" if rule.get('scrap_price_kg', 0) > 0 else "Compost / Reject"
                         })
 
                     voice_line = f"{rule['name']} detected. {rule['bin']}. {rule['tip']}"
@@ -484,7 +451,8 @@ with tab_scan:
 
                     with st.container(border=True):
                         st.markdown(
-                            f"### {rule['name']} <span class='resin-tag'>{rule['resin']}</span>",
+                            f"### {rule['name']} <span class='resin-tag'>{rule['resin']}</span>" + 
+                            (f"<span class='cash-tag'>Scrap Value: ₹{rule['scrap_price_kg']}/kg</span>" if rule.get('scrap_price_kg', 0) > 0 else ""),
                             unsafe_allow_html=True
                         )
                         st.markdown(
@@ -492,7 +460,8 @@ with tab_scan:
                             unsafe_allow_html=True
                         )
                         st.caption(f"Confidence: **{conf*100:.1f}%** | Engine: *{engine_name}* | Est. Mass: **{rule['weight_g']}g** | CO₂e Prevented: **{rule['co2_g']}g**")
-                        st.info(f"**💡 Preparation Protocol:** {rule['tip']}")
+                        st.success(f"**🔄 Circular Action & Resale:** {rule['circular_route']}")
+                        st.info(f"**💡 Municipal Protocol:** {rule['tip']}")
 
                 if is_new_scan:
                     st.session_state.last_scan_id = current_scan_id
@@ -592,7 +561,6 @@ with tab_analytics:
             log_df = pd.DataFrame(st.session_state.audit_log)
             st.dataframe(log_df, use_container_width=True, hide_index=True)
 
-            # Society / Campus Metadata Form
             with st.expander("🏢 Campus / Apartment Society Audit Configuration", expanded=False):
                 ca1, ca2 = st.columns(2)
                 with ca1:
@@ -602,7 +570,6 @@ with tab_analytics:
                     auditor_name = st.text_input("Auditor / Lead ID", value="Ashlesha (WasteSight Lead)")
                     audit_date = st.date_input("Audit Date", value=datetime.today())
 
-            # Generate Standardized CSV with Municipal Certificate Header
             total_items = len(log_df)
             total_weight = st.session_state.diverted_g
             total_co2 = st.session_state.co2_saved_g
@@ -658,20 +625,20 @@ with tab_analytics:
 # TAB 4: E-WASTE & RECYCLING DROP-OFF MAP
 # ==========================================
 with tab_map:
-    st.subheader("🗺️ Authorized E-Waste, Compost & Dry-Waste MRF Locator")
-    st.write("Items classified as **⬛ E-Waste** or bulk **🟦 Dry Recyclables** can be dropped off at these authorized municipal and recycling collection hubs:")
+    st.subheader("🗺️ Authorized Municipal Hubs, Scrap Centers & Biomethanation Plants")
+    st.write("Route segregated items to authorized scrap buyers, biomethanation units, and MRF stations:")
 
     hubs_data = pd.DataFrame([
-        {"Facility Name": "Nashik Municipal Smart Dry-Waste MRF Hub", "Stream": "🟦 Dry Recyclables & Plastic", "City": "Nashik", "lat": 19.9975, "lon": 73.7898, "Hours": "8:00 AM – 6:00 PM"},
-        {"Facility Name": "Ambad MIDC Authorized E-Waste Collection Center", "Stream": "⬛ E-Waste & Li-Ion Batteries", "City": "Nashik", "lat": 19.9568, "lon": 73.7431, "Hours": "9:00 AM – 5:30 PM"},
-        {"Facility Name": "Panchavati Municipal Biomethanation & Compost Plant", "Stream": "🟩 Wet / Organic Waste", "City": "Nashik", "lat": 20.0086, "lon": 73.7922, "Hours": "7:00 AM – 7:00 PM"},
-        {"Facility Name": "Indira Nagar Zero-Waste Segregation Kiosk", "Stream": "🟦 Dry & ⬛ E-Waste Drop-off", "City": "Nashik", "lat": 19.9723, "lon": 73.7805, "Hours": "8:30 AM – 6:30 PM"},
-        {"Facility Name": "EcoReco Authorized E-Waste Recycler Hub", "Stream": "⬛ E-Waste & IT Hardware", "City": "Mumbai", "lat": 19.1136, "lon": 72.8697, "Hours": "9:30 AM – 6:00 PM"},
-        {"Facility Name": "SWaCH Cooperative Dry Waste Collection Center", "Stream": "🟦 Dry Recyclables & E-Waste", "City": "Pune", "lat": 18.5204, "lon": 73.8567, "Hours": "8:00 AM – 5:00 PM"}
+        {"Facility Name": "Nashik Municipal Smart Dry-Waste MRF Hub", "Stream": "🟦 Dry Recyclables & Plastic", "Type": "Municipal MRF", "City": "Nashik", "lat": 19.9975, "lon": 73.7898, "Hours": "8:00 AM – 6:00 PM"},
+        {"Facility Name": "Ambad MIDC Authorized E-Waste Buyback Center", "Stream": "⬛ E-Waste & Li-Ion Batteries", "Type": "E-Waste Buyback", "City": "Nashik", "lat": 19.9568, "lon": 73.7431, "Hours": "9:00 AM – 5:30 PM"},
+        {"Facility Name": "Panchavati Municipal Biomethanation & Compost Plant", "Stream": "🟩 Wet / Organic Bio-Fertilizer", "Type": "Govt Fertilizer Facility", "City": "Nashik", "lat": 20.0086, "lon": 73.7922, "Hours": "7:00 AM – 7:00 PM"},
+        {"Facility Name": "Indira Nagar Scrap & Kabadiwala Co-Op", "Stream": "💵 Cardboard, Paper & Metal Scrap Buyer", "Type": "Scrap Buyer (Buys in ₹)", "City": "Nashik", "lat": 19.9723, "lon": 73.7805, "Hours": "8:30 AM – 6:30 PM"},
+        {"Facility Name": "EcoReco Authorized E-Waste Recycler Hub", "Stream": "⬛ E-Waste & IT Hardware", "Type": "Certified E-Waste", "City": "Mumbai", "lat": 19.1136, "lon": 72.8697, "Hours": "9:30 AM – 6:00 PM"},
+        {"Facility Name": "SWaCH Cooperative Dry Waste & Scrap Depot", "Stream": "💵 Dry Recyclables & Paper Scrap Buyback", "Type": "Cooperative Scrap Buyer", "City": "Pune", "lat": 18.5204, "lon": 73.8567, "Hours": "8:00 AM – 5:00 PM"}
     ])
 
     selected_city = st.radio(
-        "📍 Filter Collection Hubs by City:",
+        "📍 Filter Facilities by City:",
         ["All Cities", "Nashik", "Mumbai", "Pune"],
         horizontal=True
     )
@@ -695,10 +662,74 @@ with tab_map:
         zoom=view["zoom"]
     )
     st.dataframe(
-        filtered_hubs[["Facility Name", "Stream", "City", "Hours"]],
+        filtered_hubs[["Facility Name", "Stream", "Type", "City", "Hours"]],
         use_container_width=True,
         hide_index=True
     )
+
+# ==========================================
+# TAB 5: SCRAP-TO-CASH & CIRCULAR MARKETPLACE
+# ==========================================
+with tab_market:
+    st.subheader("💰 Scrap-to-Cash Calculator & Home Bio-Fertilizer Guide")
+    st.write("Turn your household waste into income or zero-cost organic fertilizer rather than sending it to overflowing landfills.")
+
+    col_calc, col_guides = st.columns([1.1, 1], gap="large")
+
+    with col_calc:
+        st.markdown("#### 💵 Live Household Scrap Resale Calculator")
+        st.caption("Benchmark scrap prices across Maharashtra (Nashik, Pune, Mumbai):")
+
+        c1, c2 = st.columns(2)
+        with c1:
+            kg_newspaper = st.number_input("📰 Newspaper / Raddi (kg)", min_value=0.0, value=5.0, step=0.5)
+            kg_cardboard = st.number_input("📦 Corrugated Cardboard (kg)", min_value=0.0, value=3.0, step=0.5)
+            kg_bottles = st.number_input("🍶 PET Plastic Bottles (kg)", min_value=0.0, value=2.0, step=0.5)
+        with c2:
+            kg_metal = st.number_input("🥫 Tin / Metal Scrap (kg)", min_value=0.0, value=1.0, step=0.5)
+            kg_alucans = st.number_input("🥤 Aluminum Cans (kg)", min_value=0.0, value=0.5, step=0.1)
+            kg_ewaste = st.number_input("📱 Small E-Waste / Peripherals (kg)", min_value=0.0, value=0.5, step=0.1)
+
+        val_newspaper = kg_newspaper * 14.0
+        val_cardboard = kg_cardboard * 12.0
+        val_bottles = kg_bottles * 18.0
+        val_metal = kg_metal * 30.0
+        val_alucans = kg_alucans * 110.0
+        val_ewaste = kg_ewaste * 150.0
+
+        total_earnings = val_newspaper + val_cardboard + val_bottles + val_metal + val_alucans + val_ewaste
+        total_diverted_kg = kg_newspaper + kg_cardboard + kg_bottles + kg_metal + kg_alucans + kg_ewaste
+
+        st.markdown("---")
+        m_cash1, m_cash2 = st.columns(2)
+        m_cash1.metric("Estimated Cash Payout", f"₹{total_earnings:.2f}", "From Verified Scrap Dealer")
+        m_cash2.metric("Total Clean Recyclables", f"{total_diverted_kg:.1f} kg", "Diverted from Landfill")
+
+        st.info("💡 **Pro-Tip for Societies:** An apartment complex of 50 flats generates ~120 kg of cardboard and ₹2,500–₹4,000 monthly in scrap revenue when segregated at source!")
+
+    with col_guides:
+        st.markdown("#### 🌱 Home Bio-Fertilizer Protocols (Zero-Cost Soil Feed)")
+        
+        with st.expander("🍌 Banana Peel Potting Fertilizer (High Potassium)", expanded=True):
+            st.markdown("""
+            * **Best For:** Flowering roses, tomatoes, and indoor plants.
+            * **Recipe:** Chop 3-4 banana peels into 1-inch pieces. Submerge in 1 liter of water for 48 hours in a closed jar.
+            * **Application:** Dilute 1:5 with tap water and pour directly into plant soil once every 2 weeks. Eliminates chemical NPK fertilizer needs.
+            """)
+
+        with st.expander("☕ Used Tea Leaves & Coffee Ground Compost (Nitrogen Booster)"):
+            st.markdown("""
+            * **Best For:** Money plants, ferns, and vegetable garden beds.
+            * **Recipe:** Rinse tea leaves to remove milk/sugar traces. Spread on a plate under sunlight for 1 day to dry.
+            * **Application:** Mix 2 tablespoons directly into potting soil as an organic slow-release nitrogen booster.
+            """)
+
+        with st.expander("🍊 Citrus Bio-Enzyme Multi-Purpose Household Cleaner"):
+            st.markdown("""
+            * **Formula (1:3:10 Ratio):** 100g Jaggery + 300g Citrus Peels (Orange/Lemon) + 1000ml Water.
+            * **Process:** Store in an airtight plastic bottle in a shaded cabinet for 90 days (open cap once daily for week 1 to release fermentation gas).
+            * **Result:** Non-toxic, natural organic enzyme that replaces synthetic floor cleaners and unclogs kitchen sink drains.
+            """)
 
 # Populate Top Metrics
 with dashboard_placeholder.container():
