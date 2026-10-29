@@ -68,6 +68,14 @@ st.markdown("""
         font-weight: 700;
         margin-left: 0.4rem;
     }
+    .chef-card {
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-left: 4px solid #f59e0b;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 0.75rem;
+    }
     @media (max-width: 768px) {
         .block-container {
             padding: 1rem 0.8rem 2rem 0.8rem !important;
@@ -85,8 +93,8 @@ st.markdown("""
 # Header Banner
 st.markdown("""
 <div class="main-header">
-    <h1>♻️ WasteSight AI Pro — Circular Waste Triage & Resale Marketplace</h1>
-    <p>Edge Computer Vision, Home Bio-Fertilizer Protocols, Scrap Resale Pricing & Drop-Off Routing</p>
+    <h1>♻️ WasteSight AI Pro — Circular Waste Triage & Culinary Upcycling</h1>
+    <p>Edge Computer Vision, Scrap-to-Recipe Engine, Home Bio-Fertilizers & Scrap Marketplace</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -127,8 +135,96 @@ sidebar_co2 = st.sidebar.empty()
 
 dashboard_placeholder = st.empty()
 
-# Comprehensive Material, Resin, Home-Circular Action & Resale Scrap Rates
+# Comprehensive Sorting Rules, Scrap Resale, and Upcycling Recipes
 SORTING_RULES = {
+    "banana": {
+        "name": "Banana Peel / Fruit Scrap",
+        "category": "Wet Compost",
+        "bin": "🟩 Green Bin — Wet Waste (Bio-Fertilizer / Upcycle)",
+        "badge_bg": "#15803d",
+        "resin": "BIO / Organic",
+        "weight_g": 45,
+        "co2_g": 90,
+        "scrap_price_kg": 0,
+        "circular_route": "🌱 Home Fertilizer: High in Potassium & Phosphorus. Soak peels for 48 hrs for plant feed, or cook into traditional subzi.",
+        "tip": "Never bag in plastic. Upcycle into fiber-rich dishes or soak for plant booster.",
+        "has_recipes": True,
+        "recipes": [
+            {
+                "title": "🍛 Traditional Kele ke Chhilke ki Sabzi (Spiced Banana Peel Fry)",
+                "ingredients": "3-4 washed banana peels (finely chopped), 1 tbsp mustard oil, 1/2 tsp cumin, 1/2 tsp turmeric, 1 tsp coriander powder, pinch of hing, salt to taste.",
+                "steps": "1. Wash peels thoroughly in warm water and dice finely.\n2. Heat mustard oil, add cumin and hing.\n3. Add chopped peels and turmeric. Sauté on medium flame for 5-7 minutes until soft.\n4. Add coriander powder, chili powder, and salt. Cook for 2 more minutes. Serve with hot rotis!"
+            },
+            {
+                "title": "🌿 Balcony Plant Potassium Booster (48-Hour Infusion)",
+                "ingredients": "2 banana peels, 1 liter plain water, glass or plastic jar.",
+                "steps": "1. Chop peels into 1-inch strips.\n2. Submerge in water in a closed jar for 48 hours.\n3. Strain the liquid and dilute with equal parts fresh water. Pour onto rose, tomato, or flowering plant roots."
+            }
+        ]
+    },
+    "apple": {
+        "name": "Apple Scrap / Fruit Core",
+        "category": "Wet Compost",
+        "bin": "🟩 Green Bin — Wet Waste (Bio-Fertilizer / Upcycle)",
+        "badge_bg": "#15803d",
+        "resin": "BIO / Organic",
+        "weight_g": 50,
+        "co2_g": 95,
+        "scrap_price_kg": 0,
+        "circular_route": "🍎 Fast-decomposing nitrogen green. Ferment peels into artisanal vinegar or quick apple cinnamon syrup.",
+        "tip": "Compost with dry leaves or ferment into homemade raw cider vinegar.",
+        "has_recipes": True,
+        "recipes": [
+            {
+                "title": "🍯 Zero-Waste Apple Peel Cinnamon Syrup",
+                "ingredients": "Peels & cores of 3-4 apples, 1 cup water, 1/2 cup sugar or jaggery, 1 cinnamon stick.",
+                "steps": "1. Simmer apple scraps with water, jaggery, and cinnamon on low heat for 20 minutes.\n2. Strain solids through a sieve. Store syrup in a bottle to drizzle over pancakes, oats, or toast!"
+            },
+            {
+                "title": "🍾 DIY Raw Apple Cider Vinegar (Natural Ferment)",
+                "ingredients": "Apple scraps, 1 tbsp sugar, 2 cups clean non-chlorinated water.",
+                "steps": "1. Place scraps into a clean jar filling half-way.\n2. Dissolve sugar in water and pour over scraps.\n3. Cover with breathable cloth and rubber band. Store in a dark shelf for 3 weeks, stirring every 2 days."
+            }
+        ]
+    },
+    "orange": {
+        "name": "Citrus / Orange Peel Scrap",
+        "category": "Wet Compost",
+        "bin": "🟩 Green Bin — Wet Waste (Bio-Enzyme / Zest)",
+        "badge_bg": "#15803d",
+        "resin": "BIO / Citrus",
+        "weight_g": 45,
+        "co2_g": 88,
+        "scrap_price_kg": 0,
+        "circular_route": "✨ Make chemical-free home bio-enzyme cleaner (1:3:10 formula) or candied orange peel confectionery.",
+        "tip": "Avoid heavy citrus in vermicompost (acidic for earthworms); use for bio-enzymes.",
+        "has_recipes": True,
+        "recipes": [
+            {
+                "title": "✨ 1:3:10 Organic Citrus Bio-Enzyme Floor & Kitchen Cleaner",
+                "ingredients": "100g Jaggery/Gur, 300g Fresh citrus peels, 1000ml (1L) tap water, 2-liter airtight plastic bottle.",
+                "steps": "1. Mix jaggery, orange/lemon peels, and water inside the bottle leaving 2 inches airspace.\n2. Tightly cap and store in a shaded cabinet for 90 days.\n3. Open cap for 5 seconds daily for the first week to release fermentation gas. Strain liquid to replace synthetic chemical floor cleaners!"
+            },
+            {
+                "title": "🍬 Candied Citrus Peel Sweets (Confectionery)",
+                "ingredients": "Peels from 2 oranges, 1 cup water, 1 cup granulated sugar.",
+                "steps": "1. Slice peel into thin matchsticks and boil in water for 5 minutes to remove bitterness.\n2. Dissolve sugar in 1 cup water, add blanched peels, and simmer for 30 minutes until translucent.\n3. Roll in granulated sugar and dry on parchment paper."
+            }
+        ]
+    },
+    "pizza": {
+        "name": "Greasy Cardboard & Food Scrap",
+        "category": "Wet Compost",
+        "bin": "🟩 Green Bin — Wet Waste (Compost)",
+        "badge_bg": "#15803d",
+        "resin": "BIO / Soiled PAP",
+        "weight_g": 80,
+        "co2_g": 120,
+        "scrap_price_kg": 0,
+        "circular_route": "🌱 Shred the greasy cardboard bottom into coin-sized bits for compost bedding; recycle only clean top lid.",
+        "tip": "Grease ruins paper pulping machines. Compost greasy cardboard and recycle only clean portions.",
+        "has_recipes": False
+    },
     "plastik": {
         "name": "Plastic Packaging / Bottle",
         "category": "Dry Recyclable",
@@ -139,7 +235,8 @@ SORTING_RULES = {
         "co2_g": 62,
         "scrap_price_kg": 18,
         "circular_route": "💵 Sell to Local Kabadiwala (Scrap Value: ₹16–₹20/kg). Rinse and crush to save storage volume.",
-        "tip": "Rinse off any liquid or food residue, remove the cap, and crush the bottle before storing or selling."
+        "tip": "Rinse off any liquid or food residue, remove the cap, and crush the bottle before storing or selling.",
+        "has_recipes": False
     },
     "metal": {
         "name": "Metal / Aluminum Can",
@@ -151,7 +248,8 @@ SORTING_RULES = {
         "co2_g": 135,
         "scrap_price_kg": 110,
         "circular_route": "💵 Highest Resale Value (₹100–₹120/kg for aluminum; ₹30/kg for tin/steel scrap). Sell to verified recyclers.",
-        "tip": "Empty all liquid, rinse briefly, and place in the Dry Recyclable bin. Aluminum can be recycled infinitely."
+        "tip": "Empty all liquid, rinse briefly, and place in the Dry Recyclable bin. Aluminum can be recycled infinitely.",
+        "has_recipes": False
     },
     "cam": {
         "name": "Glass Bottle / Jar",
@@ -163,7 +261,8 @@ SORTING_RULES = {
         "co2_g": 95,
         "scrap_price_kg": 3,
         "circular_route": "🔄 Reuse jars at home for kitchen pantry storage or sell intact beer/beverage bottles (₹2–₹3 per intact bottle).",
-        "tip": "Rinse clean. If cracked, wrap securely in newspaper and label clearly to protect collection workers."
+        "tip": "Rinse clean. If cracked, wrap securely in newspaper and label clearly to protect collection workers.",
+        "has_recipes": False
     },
     "kagit": {
         "name": "Paper Sheet / Packaging",
@@ -175,7 +274,8 @@ SORTING_RULES = {
         "co2_g": 28,
         "scrap_price_kg": 14,
         "circular_route": "💵 Resell as Raddi / Newspaper (₹12–₹15/kg) or shred for home composting carbon bedding ('Browns').",
-        "tip": "Keep clean and dry. Greasy or food-soiled paper cannot be pulped and must go into Wet Compost or Reject waste."
+        "tip": "Keep clean and dry. Greasy or food-soiled paper cannot be pulped and must go into Wet Compost or Reject waste.",
+        "has_recipes": False
     },
     "karton": {
         "name": "Cardboard Box / Carton",
@@ -187,7 +287,8 @@ SORTING_RULES = {
         "co2_g": 110,
         "scrap_price_kg": 12,
         "circular_route": "💵 Sell flattened boxes to scrap dealers (₹10–₹14/kg) or tear into strips as brown compost mulch for potting soil.",
-        "tip": "Flatten the box completely to save space and remove plastic packing tape before selling or recycling."
+        "tip": "Flatten the box completely to save space and remove plastic packing tape before selling or recycling.",
+        "has_recipes": False
     },
     "kopuk": {
         "name": "Styrofoam / Thermocol",
@@ -199,7 +300,8 @@ SORTING_RULES = {
         "co2_g": 5,
         "scrap_price_kg": 0,
         "circular_route": "🚫 Zero scrap value. Keep out of Blue Bin. Reuse blocks as garden drainage base under planter pots.",
-        "tip": "Expanded Polystyrene contaminates recycling streams. Keep out of the Blue Bin and route to domestic reject."
+        "tip": "Expanded Polystyrene contaminates recycling streams. Keep out of the Blue Bin and route to domestic reject.",
+        "has_recipes": False
     },
     "bottle": {
         "name": "Plastic Beverage Bottle",
@@ -211,55 +313,34 @@ SORTING_RULES = {
         "co2_g": 75,
         "scrap_price_kg": 18,
         "circular_route": "💵 Sell with dry plastic scrap (₹16–₹20/kg) or upcycle into DIY drip irrigation stakes for balcony plants.",
-        "tip": "Empty liquid, rinse, crush the bottle to save space, and bundle with household dry recyclables."
+        "tip": "Empty liquid, rinse, crush the bottle to save space, and bundle with household dry recyclables.",
+        "has_recipes": False
     },
-    "banana": {
-        "name": "Organic Fruit Peel / Food Scrap",
-        "category": "Wet Compost",
-        "bin": "🟩 Green Bin — Wet Waste (Bio-Fertilizer)",
-        "badge_bg": "#15803d",
-        "resin": "BIO / Organic",
-        "weight_g": 45,
-        "co2_g": 90,
-        "scrap_price_kg": 0,
-        "circular_route": "🌱 Home Fertilizer: High in Potassium & Phosphorus. Soak peels in water for 48 hrs for liquid plant feed, or add to pot compost.",
-        "tip": "Place directly into your wet compost bin. Rich in potassium; ideal for flowering balcony plants."
+    "cup": {
+        "name": "Disposable Cup / Container",
+        "category": "Dry Recyclable",
+        "bin": "🟦 Blue Bin (or 🟥 Reject if wax-lined)",
+        "badge_bg": "#1d4ed8",
+        "resin": "PP #5 / C/PAP #81",
+        "weight_g": 15,
+        "co2_g": 32,
+        "scrap_price_kg": 10,
+        "circular_route": "Poly-coated cups belong in reject; rigid PP#5 plastic cups can be sold with mixed plastics.",
+        "tip": "Rinse out liquid. Clear rigid plastic cups go in Dry Recycling; wax-lined paper coffee cups go in Reject waste.",
+        "has_recipes": False
     },
-    "apple": {
-        "name": "Organic Fruit / Food Waste",
-        "category": "Wet Compost",
-        "bin": "🟩 Green Bin — Wet Waste (Bio-Fertilizer)",
-        "badge_bg": "#15803d",
-        "resin": "BIO / Organic",
-        "weight_g": 50,
-        "co2_g": 95,
-        "scrap_price_kg": 0,
-        "circular_route": "🌱 Home Fertilizer: Fast-decomposing nitrogen 'Green'. Mix with dry brown leaves or shredded paper for rich black compost.",
-        "tip": "Dispose of in the Green Wet Waste bin or kitchen compost bin to prevent landfill methane emissions."
-    },
-    "orange": {
-        "name": "Citrus Peel / Organic Scrap",
-        "category": "Wet Compost",
-        "bin": "🟩 Green Bin — Wet Waste (Bio-Enzyme)",
-        "badge_bg": "#15803d",
-        "resin": "BIO / Citrus",
-        "weight_g": 45,
-        "co2_g": 88,
-        "scrap_price_kg": 0,
-        "circular_route": "✨ Bio-Cleaner: Ferment citrus peels with jaggery and water (1:3:10 ratio) for 3 months to make chemical-free home floor cleaner.",
-        "tip": "Do not add excessive citrus to vermicompost (earthworms dislike high acidity); use for aerobic composting or bio-enzyme."
-    },
-    "pizza": {
-        "name": "Food Scrap & Soiled Box",
-        "category": "Wet Compost",
-        "bin": "🟩 Green Bin — Wet Waste (Compost)",
-        "badge_bg": "#15803d",
-        "resin": "BIO / Soiled PAP",
-        "weight_g": 80,
-        "co2_g": 120,
-        "scrap_price_kg": 0,
-        "circular_route": "🌱 Tear the greasy cardboard bottom into coin-sized bits and bury in home compost; tear off the clean lid to sell as raddi.",
-        "tip": "Grease ruins paper pulping machines. Compost greasy cardboard and recycle only clean portions."
+    "bowl": {
+        "name": "Food Bowl / Takeout Container",
+        "category": "Dry Recyclable",
+        "bin": "🟦 Blue Bin — Dry Waste (PP #5)",
+        "badge_bg": "#1d4ed8",
+        "resin": "PP #5",
+        "weight_g": 40,
+        "co2_g": 68,
+        "scrap_price_kg": 12,
+        "circular_route": "Wash and reuse as seedling planters or kitchen storage before scrap sale.",
+        "tip": "Scrape leftover food into Green Bin; rinse before placing in Blue Bin.",
+        "has_recipes": False
     },
     "cell phone": {
         "name": "Mobile Phone / Electronic Device",
@@ -271,7 +352,8 @@ SORTING_RULES = {
         "co2_g": 1100,
         "scrap_price_kg": 150,
         "circular_route": "💰 Trade-In / E-Waste Value: Cashify / Croma Buyback gives ₹500–₹5,000, or PCB-authorized e-waste recycler gives ₹150/kg for circuit scrap.",
-        "tip": "Never dispose of lithium-ion devices with regular trash. Back up and wipe your data before drop-off."
+        "tip": "Never dispose of lithium-ion devices with regular trash. Back up and wipe your data before drop-off.",
+        "has_recipes": False
     },
     "laptop": {
         "name": "Laptop / Computer Hardware",
@@ -283,7 +365,60 @@ SORTING_RULES = {
         "co2_g": 4500,
         "scrap_price_kg": 250,
         "circular_route": "💰 Buyback / Refurbish: Old motherboards and laptop scrap fetch ₹200–₹350/kg through authorized PCB recyclers.",
-        "tip": "Wipe personal data and hand over to a certified E-Waste collection drive or PCB-authorized recycler."
+        "tip": "Wipe personal data and hand over to a certified E-Waste collection drive or PCB-authorized recycler.",
+        "has_recipes": False
+    },
+    "mouse": {
+        "name": "Electronic Peripheral (Mouse)",
+        "category": "E-Waste",
+        "bin": "⬛ Black Bin — Authorized E-Waste Hub",
+        "badge_bg": "#334155",
+        "resin": "WEEE / E-Waste",
+        "weight_g": 80,
+        "co2_g": 310,
+        "scrap_price_kg": 40,
+        "circular_route": "Route to certified e-waste drives for copper and ABS casing recovery.",
+        "tip": "Remove alkaline batteries before dropping at an E-Waste collection point.",
+        "has_recipes": False
+    },
+    "keyboard": {
+        "name": "Electronic Keyboard",
+        "category": "E-Waste",
+        "bin": "⬛ Black Bin — Authorized E-Waste Hub",
+        "badge_bg": "#334155",
+        "resin": "WEEE / E-Waste",
+        "weight_g": 400,
+        "co2_g": 850,
+        "scrap_price_kg": 40,
+        "circular_route": "Drop off at municipal e-waste drive for circuit board recovery.",
+        "tip": "Route to an E-Waste recycler for copper circuit and ABS plastic recovery.",
+        "has_recipes": False
+    },
+    "book": {
+        "name": "Paper / Book / Magazine",
+        "category": "Dry Recyclable",
+        "bin": "🟦 Blue Bin — Dry Waste (Paper)",
+        "badge_bg": "#1d4ed8",
+        "resin": "PAP #22",
+        "weight_g": 200,
+        "co2_g": 240,
+        "scrap_price_kg": 15,
+        "circular_route": "Donate readable books or sell bound paper/raddi for ₹14–₹16/kg.",
+        "tip": "Donate if usable, or keep dry and place in the Blue Dry Recyclable bin.",
+        "has_recipes": False
+    },
+    "scissors": {
+        "name": "Scrap Metal / Sharp Tool",
+        "category": "Dry Recyclable",
+        "bin": "🟦 Blue Bin — Dry Waste (Metal)",
+        "badge_bg": "#1d4ed8",
+        "resin": "FE #40 (Steel)",
+        "weight_g": 65,
+        "co2_g": 190,
+        "scrap_price_kg": 30,
+        "circular_route": "Sell as ferrous iron scrap (₹28–₹32/kg).",
+        "tip": "Wrap sharp blades in thick paper and tape securely before placing in the Dry Metal bin.",
+        "has_recipes": False
     }
 }
 
@@ -320,9 +455,9 @@ def load_models():
 
 custom_model, general_model, active_engine_name = load_models()
 
-# Main Application Tabs (Now featuring Tab 5 Marketplace)
+# Main Application Tabs
 tab_scan, tab_quiz, tab_analytics, tab_map, tab_market = st.tabs([
-    "📷 AI Waste Scanner",
+    "📷 AI Waste Scanner & Recipe Engine",
     "🧪 Human vs. AI Benchmark",
     "📊 Impact Analytics & Audit Log",
     "🗺️ Drop-Off & Recycler Map",
@@ -330,7 +465,7 @@ tab_scan, tab_quiz, tab_analytics, tab_map, tab_market = st.tabs([
 ])
 
 # ==========================================
-# TAB 1: AI WASTE SCANNER
+# TAB 1: AI SCANNER & UP-CYCLING RECIPE ENGINE
 # ==========================================
 with tab_scan:
     col_input, col_results = st.columns([1.05, 1], gap="large")
@@ -346,14 +481,14 @@ with tab_scan:
             input_file = st.camera_input("Point camera at waste item")
         else:
             input_file = st.file_uploader(
-                "Upload a photo of household waste (Plastic, Metal, Glass, Food, E-Waste, Carton)",
+                "Upload a photo of household waste (Food scraps, peels, plastic, cardboard, metal, e-waste)",
                 type=["jpg", "jpeg", "png", "webp"]
             )
 
     with col_results:
         st.markdown(f"#### 2. Real-Time Triage ({active_engine_name})")
         if input_file is None:
-            st.info("👈 Upload a photo or take a camera snapshot on the left to run real-time YOLOv8 waste detection, home routing, and resale pricing.")
+            st.info("👈 Upload a photo or take a camera snapshot on the left to run real-time YOLOv8 waste detection, kitchen upcycle recipes, and scrap pricing.")
         else:
             file_bytes = input_file.getvalue()
             current_scan_id = hashlib.md5(file_bytes).hexdigest() + f"_{conf_threshold}_{contaminant_check}"
@@ -420,7 +555,8 @@ with tab_scan:
                         "co2_g": 45,
                         "scrap_price_kg": 10,
                         "circular_route": "Route to authorized municipal dry waste sorting station.",
-                        "tip": "Ensure item is clean and dry before placing in the recycling bin."
+                        "tip": "Ensure item is clean and dry before placing in the recycling bin.",
+                        "has_recipes": False
                     }).copy()
 
                     if contaminant_check and rule["category"] == "Dry Recyclable" and label in ["kagit", "karton", "plastik", "cup", "bowl"]:
@@ -442,7 +578,7 @@ with tab_scan:
                             "Confidence": f"{conf*100:.1f}%",
                             "Weight (g)": rule["weight_g"],
                             "CO2e Saved (g)": rule["co2_g"],
-                            "Est Scrap Value": f"₹{rule['scrap_price_kg']}/kg" if rule.get('scrap_price_kg', 0) > 0 else "Compost / Reject"
+                            "Est Scrap Value": f"₹{rule['scrap_price_kg']}/kg" if rule.get('scrap_price_kg', 0) > 0 else "Organic Compost"
                         })
 
                     voice_line = f"{rule['name']} detected. {rule['bin']}. {rule['tip']}"
@@ -460,8 +596,16 @@ with tab_scan:
                             unsafe_allow_html=True
                         )
                         st.caption(f"Confidence: **{conf*100:.1f}%** | Engine: *{engine_name}* | Est. Mass: **{rule['weight_g']}g** | CO₂e Prevented: **{rule['co2_g']}g**")
-                        st.success(f"**🔄 Circular Action & Resale:** {rule['circular_route']}")
+                        st.success(f"**🔄 Circular Action:** {rule['circular_route']}")
                         st.info(f"**💡 Municipal Protocol:** {rule['tip']}")
+
+                        # DYNAMIC UP-CYCLING CHEF & BIO-FERTILIZER SECTION
+                        if rule.get("has_recipes", False):
+                            st.markdown("#### 👨‍🍳 AI Upcycle & Home Recipe Suggestions")
+                            for rec in rule.get("recipes", []):
+                                with st.expander(rec["title"], expanded=False):
+                                    st.markdown(f"**🛒 Ingredients Needed:**\n{rec['ingredients']}")
+                                    st.markdown(f"**🥣 Preparation Steps:**\n{rec['steps']}")
 
                 if is_new_scan:
                     st.session_state.last_scan_id = current_scan_id
@@ -671,7 +815,7 @@ with tab_map:
 # TAB 5: SCRAP-TO-CASH & CIRCULAR MARKETPLACE
 # ==========================================
 with tab_market:
-    st.subheader("💰 Scrap-to-Cash Calculator & Home Bio-Fertilizer Guide")
+    st.subheader("💰 Scrap-to-Cash Calculator & Home Circular Action")
     st.write("Turn your household waste into income or zero-cost organic fertilizer rather than sending it to overflowing landfills.")
 
     col_calc, col_guides = st.columns([1.1, 1], gap="large")
@@ -708,28 +852,12 @@ with tab_market:
         st.info("💡 **Pro-Tip for Societies:** An apartment complex of 50 flats generates ~120 kg of cardboard and ₹2,500–₹4,000 monthly in scrap revenue when segregated at source!")
 
     with col_guides:
-        st.markdown("#### 🌱 Home Bio-Fertilizer Protocols (Zero-Cost Soil Feed)")
-        
-        with st.expander("🍌 Banana Peel Potting Fertilizer (High Potassium)", expanded=True):
-            st.markdown("""
-            * **Best For:** Flowering roses, tomatoes, and indoor plants.
-            * **Recipe:** Chop 3-4 banana peels into 1-inch pieces. Submerge in 1 liter of water for 48 hours in a closed jar.
-            * **Application:** Dilute 1:5 with tap water and pour directly into plant soil once every 2 weeks. Eliminates chemical NPK fertilizer needs.
-            """)
-
-        with st.expander("☕ Used Tea Leaves & Coffee Ground Compost (Nitrogen Booster)"):
-            st.markdown("""
-            * **Best For:** Money plants, ferns, and vegetable garden beds.
-            * **Recipe:** Rinse tea leaves to remove milk/sugar traces. Spread on a plate under sunlight for 1 day to dry.
-            * **Application:** Mix 2 tablespoons directly into potting soil as an organic slow-release nitrogen booster.
-            """)
-
-        with st.expander("🍊 Citrus Bio-Enzyme Multi-Purpose Household Cleaner"):
-            st.markdown("""
-            * **Formula (1:3:10 Ratio):** 100g Jaggery + 300g Citrus Peels (Orange/Lemon) + 1000ml Water.
-            * **Process:** Store in an airtight plastic bottle in a shaded cabinet for 90 days (open cap once daily for week 1 to release fermentation gas).
-            * **Result:** Non-toxic, natural organic enzyme that replaces synthetic floor cleaners and unclogs kitchen sink drains.
-            """)
+        st.markdown("#### 🌱 Core Home Upcycling Principles")
+        st.markdown("""
+        1. **Separate Clean from Soiled:** Clean paper and unsoiled plastics have direct cash scrap value. Keep them dry!
+        2. **Feed Soil, Don't Fill Landfills:** Kitchen scraps that cannot be eaten (peels, grounds) rot in landfills and emit methane ($\text{CH}_4$). At home, their potassium, phosphorus, and nitrogen feed plants directly.
+        3. **Safe E-Waste Channeling:** Never mix dead batteries or old USB chargers with household trash to prevent toxic lithium and lead leaching.
+        """)
 
 # Populate Top Metrics
 with dashboard_placeholder.container():
