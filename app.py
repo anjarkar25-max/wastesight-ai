@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import cv2
 import hashlib
+import os
 from datetime import datetime
 
 st.set_page_config(
@@ -66,7 +67,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Initialize Session State for Analytics & Audit Log
+# Initialize Session State
 if "scans" not in st.session_state:
     st.session_state.scans = 0
 if "diverted_g" not in st.session_state:
@@ -104,7 +105,6 @@ sidebar_co2 = st.sidebar.empty()
 # Top 4-Column Dashboard Placeholder
 dashboard_placeholder = st.empty()
 
-# Comprehensive Sorting Rules with CO2e Factors & Resin Codes
 SORTING_RULES = {
     "plastik": {
         "name": "Plastic Packaging / Bottle",
@@ -309,7 +309,6 @@ SORTING_RULES = {
 }
 
 def speak_guidance(text_to_speak):
-    """Uses native browser Web Speech API for zero-latency hands-free voice guidance."""
     clean_text = text_to_speak.replace("/", " or ").replace("—", ", ").replace('"', '').replace("'", "").replace("\n", " ")
     js = f"""
     <script>
@@ -326,13 +325,15 @@ def speak_guidance(text_to_speak):
 
 @st.cache_resource
 def load_models():
-    custom_model = YOLO("best(1).pt")
+    # Load v2 if available, fallback to v1
+    model_path = "best_v2.pt" if os.path.exists("best_v2.pt") else "best(1).pt"
+    custom_model = YOLO(model_path)
     general_model = YOLO("yolov8n.pt")
-    return custom_model, general_model
+    is_v2 = (model_path == "best_v2.pt")
+    return custom_model, general_model, is_v2
 
-custom_model, general_model = load_models()
+custom_model, general_model, is_v2_loaded = load_models()
 
-# Main Application Tabs
 tab_scan, tab_quiz, tab_analytics, tab_map = st.tabs([
     "📷 AI Waste Scanner",
     "🧪 Human vs. AI Benchmark",
@@ -373,6 +374,8 @@ with tab_scan:
             image = Image.open(input_file).convert("RGB")
             img_array = np.array(image)
 
+            engine_label = "WasteSight v2 (80-Epoch)" if is_v2_loaded else "Waste-TACO Model"
+
             with st.spinner("Running Dual-Engine YOLOv8 Inference..."):
                 res_custom = custom_model.predict(img_array, conf=conf_threshold)
                 boxes_found = []
@@ -382,7 +385,7 @@ with tab_scan:
                     label = custom_model.names[cls_id]
                     conf = float(box.conf[0])
                     xyxy = box.xyxy[0].cpu().numpy().astype(int)
-                    boxes_found.append((label, conf, xyxy, "Waste-TACO Custom Model"))
+                    boxes_found.append((label, conf, xyxy, engine_label))
 
                 res_gen = general_model.predict(img_array, conf=conf_threshold)
                 for box in res_gen[0].boxes:
@@ -437,7 +440,6 @@ with tab_scan:
                         rule["badge_bg"] = "#b91c1c"
                         rule["tip"] = "⚠️ CONTAMINATION ALERT: Because this item is heavily soiled with food/grease, placing it in the Blue Bin will ruin surrounding recyclables. Compost soiled paper or rinse plastic thoroughly first!"
 
-                    # Only increment session counters & audit log if this is a freshly uploaded/changed scan!
                     if is_new_scan:
                         st.session_state.scans += 1
                         st.session_state.diverted_g += rule["weight_g"]
@@ -576,6 +578,18 @@ with tab_analytics:
                 mime="text/csv"
             )
 
+    # 80-Epoch Model Performance Visuals (shows if uploaded to repo)
+    if os.path.exists("results.png") or os.path.exists("confusion_matrix.png"):
+        st.markdown("---")
+        st.subheader("📈 YOLOv8n 80-Epoch Training Convergence & Confusion Matrix")
+        g1, g2 = st.columns(2)
+        with g1:
+            if os.path.exists("results.png"):
+                st.image("results.png", caption="80-Epoch Loss & mAP@50 Progression", use_container_width=True)
+        with g2:
+            if os.path.exists("confusion_matrix.png"):
+                st.image("confusion_matrix.png", caption="Waste-TACO Class Confusion Matrix", use_container_width=True)
+
 # ==========================================
 # TAB 4: E-WASTE & RECYCLING DROP-OFF MAP
 # ==========================================
@@ -594,21 +608,36 @@ with tab_map:
 
     selected_city = st.radio(
         "📍 Filter Collection Hubs by City:",
-        ["Nashik", "Mumbai", "Pune", "All Cities"],
+        ["All Cities", "Nashik", "Mumbai", "Pune"],
         horizontal=True
     )
 
     filtered_hubs = hubs_data if selected_city == "All Cities" else hubs_data[hubs_data["City"] == selected_city]
-    pin_radius = 600 if selected_city != "All Cities" else 4500
 
-    st.map(filtered_hubs, latitude="lat", longitude="lon", size=pin_radius, color="#10b981")
+    # Explicit zoom levels prevent over-zoomed black blank tiles
+    city_views = {
+        "Nashik": {"lat": 19.98, "lon": 73.77, "zoom": 11},
+        "Mumbai": {"lat": 19.11, "lon": 72.87, "zoom": 11},
+        "Pune": {"lat": 18.52, "lon": 73.85, "zoom": 11},
+        "All Cities": {"lat": 19.25, "lon": 73.40, "zoom": 7}
+    }
+    view = city_views[selected_city]
+
+    st.map(
+        filtered_hubs,
+        latitude="lat",
+        longitude="lon",
+        size=400,
+        color="#10b981",
+        zoom=view["zoom"]
+    )
     st.dataframe(
         filtered_hubs[["Facility Name", "Stream", "City", "Hours"]],
         use_container_width=True,
         hide_index=True
     )
 
-# Populate Top 4-Column Dashboard & Sidebar Metrics at the very end for instant updates
+# Populate Top Metrics
 with dashboard_placeholder.container():
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("📦 Items Segregated", st.session_state.scans, "Live Session")
