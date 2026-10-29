@@ -102,9 +102,9 @@ sidebar_scans = st.sidebar.empty()
 sidebar_weight = st.sidebar.empty()
 sidebar_co2 = st.sidebar.empty()
 
-# Top 4-Column Dashboard Placeholder
 dashboard_placeholder = st.empty()
 
+# Comprehensive Material & Bin Mappings
 SORTING_RULES = {
     "plastik": {
         "name": "Plastic Packaging / Bottle",
@@ -325,14 +325,22 @@ def speak_guidance(text_to_speak):
 
 @st.cache_resource
 def load_models():
-    # Load v2 if available, fallback to v1
-    model_path = "best_v2.pt" if os.path.exists("best_v2.pt") else "best(1).pt"
+    # Priority cascade: v3 -> v2 -> v1
+    if os.path.exists("best_v3.pt"):
+        model_path = "best_v3.pt"
+        model_name = "WasteSight v3 (YOLOv8s 100-Epoch)"
+    elif os.path.exists("best_v2.pt"):
+        model_path = "best_v2.pt"
+        model_name = "WasteSight v2 (80-Epoch)"
+    else:
+        model_path = "best(1).pt"
+        model_name = "Waste-TACO Baseline"
+
     custom_model = YOLO(model_path)
     general_model = YOLO("yolov8n.pt")
-    is_v2 = (model_path == "best_v2.pt")
-    return custom_model, general_model, is_v2
+    return custom_model, general_model, model_name
 
-custom_model, general_model, is_v2_loaded = load_models()
+custom_model, general_model, active_engine_name = load_models()
 
 tab_scan, tab_quiz, tab_analytics, tab_map = st.tabs([
     "📷 AI Waste Scanner",
@@ -363,7 +371,7 @@ with tab_scan:
             )
 
     with col_results:
-        st.markdown("#### 2. Real-Time AI Triage & Bin Routing")
+        st.markdown(f"#### 2. Real-Time Triage ({active_engine_name})")
         if input_file is None:
             st.info("👈 Upload a photo or take a camera snapshot on the left to run real-time YOLOv8 waste detection and voice guidance.")
         else:
@@ -374,9 +382,7 @@ with tab_scan:
             image = Image.open(input_file).convert("RGB")
             img_array = np.array(image)
 
-            engine_label = "WasteSight v2 (80-Epoch)" if is_v2_loaded else "Waste-TACO Model"
-
-            with st.spinner("Running Dual-Engine YOLOv8 Inference..."):
+            with st.spinner(f"Running Dual-Engine Inference ({active_engine_name})..."):
                 res_custom = custom_model.predict(img_array, conf=conf_threshold)
                 boxes_found = []
 
@@ -385,7 +391,7 @@ with tab_scan:
                     label = custom_model.names[cls_id]
                     conf = float(box.conf[0])
                     xyxy = box.xyxy[0].cpu().numpy().astype(int)
-                    boxes_found.append((label, conf, xyxy, engine_label))
+                    boxes_found.append((label, conf, xyxy, active_engine_name))
 
                 res_gen = general_model.predict(img_array, conf=conf_threshold)
                 for box in res_gen[0].boxes:
@@ -415,7 +421,7 @@ with tab_scan:
                         cv2.FONT_HERSHEY_SIMPLEX, 0.65, (16, 185, 129), 2
                     )
 
-            st.image(annotated_img, caption="WasteSight AI Bounding-Box Triage", use_container_width=True)
+            st.image(annotated_img, caption=f"WasteSight AI Bounding-Box Triage — {active_engine_name}", use_container_width=True)
 
             if len(boxes_found) == 0:
                 st.warning("No distinct waste item isolated. Lower the AI Sensitivity slider in the sidebar or move closer to the object.")
@@ -578,17 +584,17 @@ with tab_analytics:
                 mime="text/csv"
             )
 
-    # 80-Epoch Model Performance Visuals (shows if uploaded to repo)
+    # 100-Epoch Model Performance Visuals
     if os.path.exists("results.png") or os.path.exists("confusion_matrix.png"):
         st.markdown("---")
-        st.subheader("📈 YOLOv8n 80-Epoch Training Convergence & Confusion Matrix")
+        st.subheader(f"📈 {active_engine_name} Training Convergence & Confusion Matrix")
         g1, g2 = st.columns(2)
         with g1:
             if os.path.exists("results.png"):
-                st.image("results.png", caption="80-Epoch Loss & mAP@50 Progression", use_container_width=True)
+                st.image("results.png", caption="Training Loss & mAP@50 Progression", use_container_width=True)
         with g2:
             if os.path.exists("confusion_matrix.png"):
-                st.image("confusion_matrix.png", caption="Waste-TACO Class Confusion Matrix", use_container_width=True)
+                st.image("confusion_matrix.png", caption="Confusion Matrix Across Packaging Classes", use_container_width=True)
 
 # ==========================================
 # TAB 4: E-WASTE & RECYCLING DROP-OFF MAP
@@ -614,7 +620,7 @@ with tab_map:
 
     filtered_hubs = hubs_data if selected_city == "All Cities" else hubs_data[hubs_data["City"] == selected_city]
 
-    # Explicit zoom levels prevent over-zoomed black blank tiles
+    # Explicit zoom levels keep road tiles sharp and prevent black blank boxes
     city_views = {
         "Nashik": {"lat": 19.98, "lon": 73.77, "zoom": 11},
         "Mumbai": {"lat": 19.11, "lon": 72.87, "zoom": 11},
@@ -643,7 +649,7 @@ with dashboard_placeholder.container():
     m1.metric("📦 Items Segregated", st.session_state.scans, "Live Session")
     m2.metric("⚖️ Waste Diverted from Landfill", f"{st.session_state.diverted_g} g", "Source Segregated")
     m3.metric("🌿 CO₂e Emissions Prevented", f"{st.session_state.co2_saved_g} g", "Lifecycle Offset")
-    m4.metric("🛡️ Edge Triage Engines", "Dual YOLOv8 + LiteRT", "12.2 MB .tflite Ready")
+    m4.metric("🛡️ Edge Triage Engines", f"Dual {active_engine_name.split()[0]} + LiteRT", "42.7 MB .tflite Ready")
 
 sidebar_scans.metric("Items Segregated", st.session_state.scans)
 sidebar_weight.metric("Landfill Diverted", f"{st.session_state.diverted_g} g")
