@@ -18,33 +18,34 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Responsive UI & Mobile-First Styling
+# Polished Modern Design System
 st.markdown("""
 <style>
     .main-header {
-        background: linear-gradient(90deg, #059669 0%, #10b981 50%, #047857 100%);
-        padding: 1.2rem 1.5rem;
+        background: linear-gradient(135deg, #065f46 0%, #059669 50%, #10b981 100%);
+        padding: 1.2rem 1.8rem;
         border-radius: 12px;
         color: white;
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+        margin-bottom: 1.2rem;
+        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.2);
     }
     .main-header h1 {
         color: white !important;
         margin: 0;
-        font-size: clamp(1.4rem, 3.5vw, 2.2rem) !important;
+        font-size: clamp(1.4rem, 3.2vw, 2.1rem) !important;
+        font-weight: 800;
     }
     .main-header p {
         color: #ecfdf5 !important;
         margin: 0.3rem 0 0 0;
-        font-size: clamp(0.85rem, 2vw, 1.05rem) !important;
+        font-size: clamp(0.85rem, 1.8vw, 1.0rem) !important;
     }
     .bin-badge {
         display: inline-block;
         padding: 0.35rem 0.85rem;
         border-radius: 999px;
         font-weight: 700;
-        font-size: clamp(0.75rem, 2vw, 0.9rem);
+        font-size: 0.85rem;
         margin-bottom: 0.5rem;
     }
     .resin-tag {
@@ -54,9 +55,9 @@ st.markdown("""
         border: 1px solid #334155;
         padding: 0.2rem 0.65rem;
         border-radius: 6px;
-        font-size: clamp(0.7rem, 1.8vw, 0.8rem);
+        font-size: 0.75rem;
         font-weight: 600;
-        margin-left: 0.5rem;
+        margin-left: 0.4rem;
     }
     .cash-tag {
         display: inline-block;
@@ -65,19 +66,13 @@ st.markdown("""
         border: 1px solid #059669;
         padding: 0.2rem 0.65rem;
         border-radius: 6px;
-        font-size: clamp(0.7rem, 1.8vw, 0.8rem);
+        font-size: 0.75rem;
         font-weight: 700;
         margin-left: 0.4rem;
     }
     @media (max-width: 768px) {
         .block-container {
             padding: 1rem 0.8rem 2rem 0.8rem !important;
-        }
-        div[data-testid="stMetricValue"] {
-            font-size: 1.25rem !important;
-        }
-        div[data-testid="stMetricLabel"] {
-            font-size: 0.75rem !important;
         }
     }
 </style>
@@ -86,12 +81,12 @@ st.markdown("""
 # Header Banner
 st.markdown("""
 <div class="main-header">
-    <h1>♻️ WasteSight AI Pro — Circular Waste Triage & Recycler Locator</h1>
-    <p>Edge Computer Vision, Kitchen Scrap-to-Recipe, Home Bio-Fertilizers & Geo-Located Scrap Marketplace</p>
+    <h1>♻️ WasteSight AI Pro — Circular Waste Triage & Recycler Network</h1>
+    <p>Edge Computer Vision, Scrap-to-Recipe Kitchen Engine & Geo-Located Municipal Buyback</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Initialize Session State
+# Session State Initialization
 if "scans" not in st.session_state:
     st.session_state.scans = 0
 if "diverted_g" not in st.session_state:
@@ -114,7 +109,7 @@ if "user_lat" not in st.session_state:
 if "user_lon" not in st.session_state:
     st.session_state.user_lon = 73.7898
 
-# Verified Regional Scrap Buyers, Municipal MRFs & Buyback Hubs Database
+# Facilities Database
 FACILITIES_DB = [
     {
         "name": "Nashik Municipal Smart Dry-Waste MRF Hub",
@@ -185,7 +180,6 @@ FACILITIES_DB = [
 ]
 
 def haversine_distance(lat1, lon1, lat2, lon2):
-    """Calculates geodesic distance in kilometers between two GPS points."""
     r = 6371.0
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
@@ -198,35 +192,33 @@ st.sidebar.header("⚙️ AI Scanner Controls")
 conf_threshold = st.sidebar.slider(
     "AI Sensitivity (Confidence Threshold)",
     min_value=0.05, max_value=0.80, value=0.12, step=0.01,
-    help="Lower values help detect crushed, transparent, or overlapping waste items."
+    help="Lower values detect crushed, transparent, or overlapping materials."
 )
-enable_voice = st.sidebar.toggle("🔊 Hands-Free Voice Assistant", value=True)
-contaminant_check = st.sidebar.checkbox("🧪 Enable Food/Grease Contamination Check", value=False)
+enable_voice = st.sidebar.toggle("🔊 Hands-Free Voice Guidance", value=True)
+contaminant_check = st.sidebar.checkbox("🧪 Flag Food/Grease Contamination", value=False)
 
 st.sidebar.markdown("---")
-st.sidebar.subheader("📍 Geolocation Center")
-loc_mode = st.sidebar.radio("Location Mode:", ["Auto-Set City", "Custom Coordinates"], horizontal=True)
-if loc_mode == "Auto-Set City":
-    city_preset = st.sidebar.selectbox("Active City / Hub:", ["Nashik (Current)", "Mumbai", "Pune"])
-    if "Nashik" in city_preset:
-        st.session_state.user_lat, st.session_state.user_lon = 19.9975, 73.7898
-    elif "Mumbai" in city_preset:
-        st.session_state.user_lat, st.session_state.user_lon = 19.1136, 72.8697
-    elif "Pune" in city_preset:
-        st.session_state.user_lat, st.session_state.user_lon = 18.5204, 73.8567
+st.sidebar.subheader("📍 User Location Center")
+city_preset = st.sidebar.selectbox("Active City / Area:", ["Nashik (Current)", "Mumbai", "Pune", "Custom GPS"])
+if "Nashik" in city_preset:
+    st.session_state.user_lat, st.session_state.user_lon = 19.9975, 73.7898
+elif "Mumbai" in city_preset:
+    st.session_state.user_lat, st.session_state.user_lon = 19.1136, 72.8697
+elif "Pune" in city_preset:
+    st.session_state.user_lat, st.session_state.user_lon = 18.5204, 73.8567
 else:
     st.session_state.user_lat = st.sidebar.number_input("Latitude", value=st.session_state.user_lat, format="%.4f")
     st.session_state.user_lon = st.sidebar.number_input("Longitude", value=st.session_state.user_lon, format="%.4f")
 
 st.sidebar.markdown("---")
-st.sidebar.subheader("📊 Session Summary")
+st.sidebar.subheader("📊 Session Counters")
 sidebar_scans = st.sidebar.empty()
 sidebar_weight = st.sidebar.empty()
 sidebar_co2 = st.sidebar.empty()
 
 dashboard_placeholder = st.empty()
 
-# Comprehensive Material, Resin, Scrap Rates & Circular Recipes
+# Sorting Rules & Actions
 SORTING_RULES = {
     "plastik": {
         "name": "Plastic Packaging / Bottle",
@@ -238,8 +230,8 @@ SORTING_RULES = {
         "weight_g": 25,
         "co2_g": 62,
         "scrap_price_kg": 18,
-        "circular_route": "💵 Sell to Local Kabadiwala (₹16–₹20/kg) or place in Blue Bin for municipal recycling.",
-        "tip": "Rinse off any liquid or food residue, remove the cap, and crush the bottle before placing in bin."
+        "circular_route": "Sell to local scrap dealer (₹16–₹20/kg) or place in Blue Bin.",
+        "tip": "Rinse off food residue, remove the cap, and crush before sorting."
     },
     "metal": {
         "name": "Metal / Aluminum Can",
@@ -251,8 +243,8 @@ SORTING_RULES = {
         "weight_g": 15,
         "co2_g": 135,
         "scrap_price_kg": 110,
-        "circular_route": "💵 High Value Scrap (₹100–₹120/kg for Aluminum, ₹30/kg for Steel/Tin). Recycle infinitely.",
-        "tip": "Empty all liquid, rinse briefly, and place in the Dry Recyclable bin."
+        "circular_route": "High-value scrap (₹100–₹120/kg for Aluminum). Can be recycled infinitely.",
+        "tip": "Empty all liquids, rinse briefly, and place in Dry Recyclable bin."
     },
     "cam": {
         "name": "Glass Bottle / Jar",
@@ -264,8 +256,8 @@ SORTING_RULES = {
         "weight_g": 180,
         "co2_g": 95,
         "scrap_price_kg": 3,
-        "circular_route": "🔄 Reuse jars at home or hand over clean intact bottles to bottle recyclers (₹2–₹3/bottle).",
-        "tip": "Rinse clean. If cracked, wrap securely in newspaper and label clearly."
+        "circular_route": "Reuse jars for pantry storage or return intact bottles (₹2–₹3/bottle).",
+        "tip": "Rinse clean. If broken, wrap in newspaper to protect waste workers."
     },
     "kagit": {
         "name": "Paper Sheet / Packaging",
@@ -277,8 +269,8 @@ SORTING_RULES = {
         "weight_g": 10,
         "co2_g": 28,
         "scrap_price_kg": 14,
-        "circular_route": "💵 Resell as Raddi / Newspaper (₹12–₹15/kg) or shred for home compost carbon bedding ('Browns').",
-        "tip": "Keep clean and dry. Greasy or food-soiled paper cannot be pulped and must go into Wet Compost."
+        "circular_route": "Resell as Raddi / Newspaper (₹12–₹15/kg) or shred for home compost carbon bedding.",
+        "tip": "Must be clean and dry. Soiled paper belongs in compost or reject."
     },
     "karton": {
         "name": "Cardboard Box / Carton",
@@ -286,12 +278,12 @@ SORTING_RULES = {
         "stream_match": "Cardboard",
         "bin": "🟦 Blue Bin — Dry Waste (Cardboard)",
         "badge_bg": "#1d4ed8",
-        "resin": "PAP #20 (Corrugated)",
+        "resin": "PAP #20",
         "weight_g": 85,
         "co2_g": 110,
         "scrap_price_kg": 12,
-        "circular_route": "💵 Sell flattened boxes to scrap dealers (₹10–₹14/kg) or tear into strips as brown compost mulch.",
-        "tip": "Flatten the box completely to save collection volume and peel off plastic packing tape."
+        "circular_route": "Sell flattened cardboard (₹10–₹14/kg) or tear into strips as brown compost mulch.",
+        "tip": "Flatten boxes completely and remove plastic tape before recycling."
     },
     "kopuk": {
         "name": "Styrofoam / Thermocol",
@@ -299,12 +291,12 @@ SORTING_RULES = {
         "stream_match": None,
         "bin": "🟥 Red Bin — Domestic Reject / Landfill",
         "badge_bg": "#b91c1c",
-        "resin": "PS #6 (Non-Recyclable Foam)",
+        "resin": "PS #6 (Reject)",
         "weight_g": 12,
         "co2_g": 5,
         "scrap_price_kg": 0,
-        "circular_route": "🚫 Zero scrap value. Keep out of Blue Bin. Reuse blocks as garden drainage base under planter pots.",
-        "tip": "Expanded Polystyrene contaminates recycling streams. Keep out of Blue Bin and route to domestic reject."
+        "circular_route": "Zero scrap value. Keep out of Blue Bin. Can be used as pot drainage bases.",
+        "tip": "Contaminates recycling streams. Keep in red domestic reject bin."
     },
     "bottle": {
         "name": "Plastic Beverage Bottle",
@@ -316,8 +308,8 @@ SORTING_RULES = {
         "weight_g": 30,
         "co2_g": 75,
         "scrap_price_kg": 18,
-        "circular_route": "💵 Sell with dry plastic scrap (₹16–₹20/kg) or upcycle into DIY drip irrigation stakes for plants.",
-        "tip": "Empty liquid, rinse, crush bottle to save space, and place in Blue Dry Recyclable bin."
+        "circular_route": "Sell with dry plastic scrap (₹16–₹20/kg) or upcycle into DIY drip irrigation stakes.",
+        "tip": "Empty, rinse, crush, and place in Blue Dry Recyclable bin."
     },
     "banana": {
         "name": "Banana Peel / Fruit Scrap",
@@ -329,8 +321,21 @@ SORTING_RULES = {
         "weight_g": 45,
         "co2_g": 90,
         "scrap_price_kg": 0,
-        "circular_route": "🌱 Home Fertilizer: High in Potassium & Phosphorus. Soak peels for 48 hrs for plant feed or cook subzi.",
-        "tip": "Never seal in plastic bags. Place in Green Bin or use for home plant fertilizer."
+        "circular_route": "High in Potassium & Phosphorus. Soak for 48 hrs for plant feed or cook traditional subzi.",
+        "tip": "Never seal in plastic bags. Place in Green Bin or use for home plant fertilizer.",
+        "has_recipes": True,
+        "recipes": [
+            {
+                "title": "🍛 Kele ke Chhilke ki Sabzi (Spiced Banana Peel Fry)",
+                "ingredients": "3-4 washed banana peels (finely chopped), 1 tbsp oil, 1/2 tsp cumin, turmeric, coriander, chili powder, salt.",
+                "steps": "1. Wash and dice peels.\n2. Sauté cumin, turmeric, and peels in oil for 6 mins.\n3. Add coriander, chili, and salt. Cook 2 mins and serve with roti!"
+            },
+            {
+                "title": "🌿 Balcony Plant Potassium Booster (48-Hour Tea)",
+                "ingredients": "2 banana peels, 1 liter plain water, closed jar.",
+                "steps": "1. Cut peels into strips.\n2. Submerge in water for 48 hours.\n3. Dilute 1:1 with fresh water and feed rose/tomato plant roots."
+            }
+        ]
     },
     "apple": {
         "name": "Apple Scrap / Fruit Core",
@@ -342,8 +347,16 @@ SORTING_RULES = {
         "weight_g": 50,
         "co2_g": 95,
         "scrap_price_kg": 0,
-        "circular_route": "🍎 Fast-decomposing nitrogen green. Ferment peels into artisanal vinegar or apple cinnamon syrup.",
-        "tip": "Dispose of in the Green Wet Waste bin to prevent landfill methane emissions."
+        "circular_route": "Fast nitrogen decomposer. Ferment peels into artisanal vinegar or pancake syrup.",
+        "tip": "Place in kitchen compost to avoid landfill methane emissions.",
+        "has_recipes": True,
+        "recipes": [
+            {
+                "title": "🍯 Zero-Waste Apple Peel Cinnamon Syrup",
+                "ingredients": "Apple scraps, 1 cup water, 1/2 cup jaggery/sugar, 1 cinnamon stick.",
+                "steps": "Simmer ingredients for 20 mins on low flame, strain, and bottle as pancake drizzle."
+            }
+        ]
     },
     "orange": {
         "name": "Citrus / Orange Peel Scrap",
@@ -355,8 +368,29 @@ SORTING_RULES = {
         "weight_g": 45,
         "co2_g": 88,
         "scrap_price_kg": 0,
-        "circular_route": "✨ Make chemical-free home bio-enzyme cleaner (1:3:10 formula) or candied orange peel sweets.",
-        "tip": "Avoid heavy citrus in vermicompost (acidic for earthworms); use for bio-enzymes or compost."
+        "circular_route": "Ferment into chemical-free organic bio-enzyme cleaner using the 1:3:10 formula.",
+        "tip": "Avoid heavy citrus in vermicompost (acidic for earthworms); use for bio-enzymes.",
+        "has_recipes": True,
+        "recipes": [
+            {
+                "title": "✨ 1:3:10 Organic Citrus Bio-Enzyme Cleaner",
+                "ingredients": "100g Jaggery, 300g Citrus peels, 1000ml Water, 2L plastic bottle.",
+                "steps": "Store in dark cupboard for 90 days. Open cap daily in week 1 to release gas. Strain to replace floor cleaner!"
+            }
+        ]
+    },
+    "pizza": {
+        "name": "Food Scrap & Soiled Box",
+        "category": "Wet Compost",
+        "stream_match": "Food Scrap",
+        "bin": "🟩 Green Bin — Wet Waste (Compost)",
+        "badge_bg": "#15803d",
+        "resin": "BIO / Soiled PAP",
+        "weight_g": 80,
+        "co2_g": 120,
+        "scrap_price_kg": 0,
+        "circular_route": "Compost greasy cardboard bottoms; recycle only clean top lids.",
+        "tip": "Grease ruins paper pulping. Compost soiled parts and recycle clean cardboard."
     },
     "cell phone": {
         "name": "Mobile Phone / Electronic Device",
@@ -368,8 +402,8 @@ SORTING_RULES = {
         "weight_g": 170,
         "co2_g": 1100,
         "scrap_price_kg": 150,
-        "circular_route": "💰 Trade-In / E-Waste Value: Cashify/Croma give ₹500–₹5,000, or PCB recyclers give ₹150/kg for circuit scrap.",
-        "tip": "Never dispose of lithium-ion devices with regular trash. Back up and wipe your data before drop-off."
+        "circular_route": "Cashify/Croma buyback gives ₹500–₹5,000, or PCB recyclers give ₹150/kg.",
+        "tip": "Never place in household bins. Contains hazardous lithium-ion batteries."
     },
     "laptop": {
         "name": "Laptop / Computer Hardware",
@@ -381,8 +415,8 @@ SORTING_RULES = {
         "weight_g": 1200,
         "co2_g": 4500,
         "scrap_price_kg": 250,
-        "circular_route": "💰 Buyback / Refurbish: Old motherboards and laptop scrap fetch ₹200–₹350/kg through authorized PCB recyclers.",
-        "tip": "Wipe personal data and hand over to a certified E-Waste collection drive or PCB-authorized recycler."
+        "circular_route": "Old boards and laptop scrap fetch ₹200–₹350/kg through authorized recyclers.",
+        "tip": "Wipe personal data and hand over to a certified E-Waste collection drive."
     }
 }
 
@@ -419,24 +453,24 @@ def load_models():
 
 custom_model, general_model, active_engine_name = load_models()
 
-tab_scan, tab_quiz, tab_analytics, tab_map, tab_market = st.tabs([
-    "📷 AI Waste Scanner & Geo-Locator",
-    "🧪 Human vs. AI Benchmark",
-    "📊 Impact Analytics & Audit Log",
-    "🗺️ Drop-Off & Recycler Map",
-    "💰 Scrap-to-Cash & Circular Market"
+# Structured 4-Pillar Tabs
+tab_scan, tab_market, tab_analytics, tab_validation = st.tabs([
+    "📷 AI Scanner & Smart Triage",
+    "🗺️ Recycler Map & Scrap Market",
+    "📊 Impact Ledger & Society Audit",
+    "🧪 Scientific Benchmarks & Proof"
 ])
 
 # ==========================================
-# TAB 1: AI WASTE SCANNER & LOCAL DROP-OFFS
+# PILLAR 1: AI SCANNER & ACTION CARD
 # ==========================================
 with tab_scan:
-    col_input, col_results = st.columns([1.05, 1], gap="large")
+    col_input, col_results = st.columns([1, 1.1], gap="large")
 
     with col_input:
         st.markdown("#### 1. Capture or Upload Waste Item")
         scan_mode = st.radio(
-            "Select Input Method:",
+            "Input Mode:",
             ["📁 Upload Photo", "📷 Live Camera Scan"],
             horizontal=True
         )
@@ -444,14 +478,14 @@ with tab_scan:
             input_file = st.camera_input("Point camera at waste item")
         else:
             input_file = st.file_uploader(
-                "Upload a photo of household waste (Plastic, cardboard, paper, metal, e-waste, food scrap)",
+                "Upload a photo (Plastic, cardboard, paper, food, e-waste)",
                 type=["jpg", "jpeg", "png", "webp"]
             )
 
     with col_results:
-        st.markdown(f"#### 2. Real-Time Triage ({active_engine_name})")
+        st.markdown(f"#### 2. Real-Time Detection ({active_engine_name})")
         if input_file is None:
-            st.info("👈 Upload a photo or take a camera snapshot on the left to run real-time YOLOv8 waste detection, geolocation drop-offs, and resale pricing.")
+            st.info("👈 Upload an image or snap a picture on the left to run dual-engine YOLOv8 waste classification.")
         else:
             file_bytes = input_file.getvalue()
             current_scan_id = hashlib.md5(file_bytes).hexdigest() + f"_{conf_threshold}_{contaminant_check}"
@@ -460,7 +494,7 @@ with tab_scan:
             image = Image.open(input_file).convert("RGB")
             img_array = np.array(image)
 
-            with st.spinner(f"Running Dual-Engine Inference ({active_engine_name})..."):
+            with st.spinner("Classifying Waste Stream..."):
                 res_custom = custom_model.predict(img_array, conf=conf_threshold)
                 boxes_found = []
 
@@ -499,12 +533,12 @@ with tab_scan:
                         cv2.FONT_HERSHEY_SIMPLEX, 0.65, (16, 185, 129), 2
                     )
 
-            st.image(annotated_img, caption=f"WasteSight AI Bounding-Box Triage — {active_engine_name}", use_container_width=True)
+            st.image(annotated_img, caption="Bounding Box Isolation", use_container_width=True)
 
             if len(boxes_found) == 0:
-                st.warning("No distinct waste item isolated. Lower the AI Sensitivity slider in the sidebar or move closer to the object.")
+                st.warning("No waste item detected. Adjust sensitivity slider in the sidebar.")
             else:
-                st.success(f"✅ Segregated {len(boxes_found)} waste item(s)!")
+                st.success(f"✅ Isolated {len(boxes_found)} item(s)!")
                 speech_summary = []
 
                 for label, conf, _, engine_name in boxes_found:
@@ -518,14 +552,14 @@ with tab_scan:
                         "weight_g": 20,
                         "co2_g": 45,
                         "scrap_price_kg": 10,
-                        "circular_route": "Route to authorized municipal dry waste sorting station.",
-                        "tip": "Ensure item is clean and dry before placing in the recycling bin."
+                        "circular_route": "Place in municipal dry recycling bin.",
+                        "tip": "Ensure item is clean and dry."
                     }).copy()
 
-                    if contaminant_check and rule["category"] == "Dry Recyclable" and label in ["kagit", "karton", "plastik", "cup", "bowl"]:
+                    if contaminant_check and rule["category"] == "Dry Recyclable" and label in ["kagit", "karton", "plastik"]:
                         rule["bin"] = "🟥 Red/Green Bin — Contaminated (Do Not Recycle!)"
                         rule["badge_bg"] = "#b91c1c"
-                        rule["tip"] = "⚠️ CONTAMINATION ALERT: Food/grease will spoil paper/plastic recycling batches. Compost soiled paper or wash plastic before sorting!"
+                        rule["tip"] = "⚠️ CONTAMINATION: Grease/food residue ruins recycling. Compost soiled paper or wash plastic thoroughly!"
 
                     if is_new_scan:
                         st.session_state.scans += 1
@@ -541,13 +575,14 @@ with tab_scan:
                             "Confidence": f"{conf*100:.1f}%",
                             "Weight (g)": rule["weight_g"],
                             "CO2e Saved (g)": rule["co2_g"],
-                            "Est Scrap Value": f"₹{rule['scrap_price_kg']}/kg" if rule.get('scrap_price_kg', 0) > 0 else "Compost / Reject"
+                            "Est Scrap Value": f"₹{rule['scrap_price_kg']}/kg" if rule.get('scrap_price_kg', 0) > 0 else "Organic Compost"
                         })
 
                     voice_line = f"{rule['name']} detected. {rule['bin']}. {rule['tip']}"
                     if voice_line not in speech_summary:
                         speech_summary.append(voice_line)
 
+                    # Primary Triage Card
                     with st.container(border=True):
                         st.markdown(
                             f"### {rule['name']} <span class='resin-tag'>{rule['resin']}</span>" + 
@@ -559,35 +594,40 @@ with tab_scan:
                             unsafe_allow_html=True
                         )
                         st.caption(f"Confidence: **{conf*100:.1f}%** | Engine: *{engine_name}* | Est. Mass: **{rule['weight_g']}g** | CO₂e Prevented: **{rule['co2_g']}g**")
-                        st.success(f"**🔄 Circular Action:** {rule['circular_route']}")
-                        st.info(f"**💡 Municipal Protocol:** {rule['tip']}")
+                        st.info(f"💡 **Municipal Protocol:** {rule['tip']}")
 
-                        # DYNAMIC NEARBY SELL / DROP-OFF GEOLOCATOR
-                        st.markdown("##### 📍 Nearby Facilities Where You Can Sell or Recycle This Item")
-                        
-                        nearby_matches = []
-                        for fac in FACILITIES_DB:
-                            # Match facility by stream compatibility
-                            stream_fit = (rule["stream_match"] in fac["streams"]) if rule["stream_match"] else False
-                            dist = haversine_distance(st.session_state.user_lat, st.session_state.user_lon, fac["lat"], fac["lon"])
-                            if stream_fit or dist < 20.0:  # prioritize relevant or close facilities
-                                nearby_matches.append({
-                                    "Facility": fac["name"],
-                                    "Type": fac["type"],
-                                    "Distance": f"{dist:.1f} km away",
-                                    "Pricing / Terms": "💵 Buys for Cash" if fac["buys_for_cash"] else "🆓 Free Drop-Off",
-                                    "Hours": fac["hours"],
-                                    "Directions": f"https://www.google.com/maps/dir/?api=1&destination={fac['lat']},{fac['lon']}"
-                                })
+                        # Clean Sub-Section: Dynamic Action Accordion
+                        with st.expander("🌱 View Circular Action, Recipes & Nearest Drop-Off", expanded=True):
+                            st.write(f"**🔄 Circular Lifecycle:** {rule['circular_route']}")
 
-                        if nearby_matches:
-                            df_nearby = pd.DataFrame(nearby_matches[:3])
-                            st.dataframe(df_nearby[["Facility", "Type", "Pricing / Terms", "Distance", "Hours"]], use_container_width=True, hide_index=True)
-                            
-                            c_dir1, c_dir2 = st.columns([1, 1.5])
-                            with c_dir1:
+                            # 1. Recipes if food/organic
+                            if rule.get("has_recipes", False):
+                                st.markdown("---")
+                                st.markdown("##### 👨‍🍳 Zero-Waste Recipes & Bio-Fertilizers")
+                                for rec in rule.get("recipes", []):
+                                    st.markdown(f"**{rec['title']}**")
+                                    st.caption(f"**Ingredients:** {rec['ingredients']}")
+                                    st.caption(f"**Steps:** {rec['steps']}")
+
+                            # 2. Closest drop-off facility
+                            st.markdown("---")
+                            st.markdown("##### 📍 Nearest Facility to Sell or Drop Off This Item")
+                            nearby_matches = []
+                            for fac in FACILITIES_DB:
+                                stream_fit = (rule["stream_match"] in fac["streams"]) if rule["stream_match"] else False
+                                dist = haversine_distance(st.session_state.user_lat, st.session_state.user_lon, fac["lat"], fac["lon"])
+                                if stream_fit or dist < 25.0:
+                                    nearby_matches.append({
+                                        "Facility": fac["name"],
+                                        "Type": fac["type"],
+                                        "Distance": f"{dist:.1f} km away",
+                                        "Terms": "💵 Buys for Cash" if fac["buys_for_cash"] else "🆓 Free Drop-Off",
+                                        "Directions": f"https://www.google.com/maps/dir/?api=1&destination={fac['lat']},{fac['lon']}"
+                                    })
+                            if nearby_matches:
                                 top_fac = nearby_matches[0]
-                                st.link_button(f"🗺️ Open Route to Closest ({top_fac['Facility'].split()[0]})", top_fac["Directions"])
+                                st.write(f"Closest: **{top_fac['Facility']}** ({top_fac['Distance']}) — *{top_fac['Terms']}*")
+                                st.link_button(f"🗺️ Navigate to {top_fac['Facility'].split()[0]}", top_fac["Directions"])
 
                 if is_new_scan:
                     st.session_state.last_scan_id = current_scan_id
@@ -595,84 +635,64 @@ with tab_scan:
                         speak_guidance(" ".join(speech_summary[:2]))
 
 # ==========================================
-# TAB 2: HUMAN VS. AI WISH-CYCLING BENCHMARK
+# PILLAR 2: RECYCLER MAP & SCRAP MARKETPLACE
 # ==========================================
-with tab_quiz:
-    st.subheader("🧪 Source Contamination Reduction Benchmark (Theme Track Validation)")
-    st.write(
-        "Municipal Material Recovery Facilities (MRFs) lose up to **30–40% of recyclable batches** due to *wish-cycling*—citizens tossing non-recyclable or contaminated items into the Blue Dry Bin. "
-        "Take this 5-item benchmark test to measure how much **WasteSight AI** reduces household sorting errors."
-    )
+with tab_market:
+    st.subheader("🗺️ Circular Economy Map & Scrap-to-Cash Marketplace")
+    st.write("Locate authorized drop-off facilities or calculate your earnings by selling segregated recyclables.")
 
-    quiz_items = [
-        {
-            "id": "q1",
-            "item": "1. Greasy, cheese-soaked bottom of a cardboard pizza box",
-            "options": ["🟦 Blue Bin (Dry Recyclable)", "🟩 Green Bin (Wet Compost)", "⬛ Black Bin (E-Waste)"],
-            "correct": "🟩 Green Bin (Wet Compost)",
-            "ai_reason": "Grease binds to paper fibers and ruins entire paper-pulping batches. Clean lids go in Dry Paper; greasy bottoms must be composted."
-        },
-        {
-            "id": "q2",
-            "item": "2. White Styrofoam (Thermocol) protective packaging block",
-            "options": ["🟦 Blue Bin (Dry Recyclable)", "🟩 Green Bin (Wet Compost)", "🟥 Red Bin (Domestic Reject / Landfill)"],
-            "correct": "🟥 Red Bin (Domestic Reject / Landfill)",
-            "ai_reason": "Expanded Polystyrene (PS #6) is not accepted in standard municipal dry recycling and shatters into micro-contaminants."
-        },
-        {
-            "id": "q3",
-            "item": "3. Crushed clear PET #1 plastic water bottle (rinsed)",
-            "options": ["🟦 Blue Bin (Dry Recyclable)", "🟥 Red Bin (Domestic Reject / Landfill)", "🟩 Green Bin (Wet Compost)"],
-            "correct": "🟦 Blue Bin (Dry Recyclable)",
-            "ai_reason": "PET #1 has one of the highest recycling recovery rates (>80%) when rinsed and crushed."
-        },
-        {
-            "id": "q4",
-            "item": "4. Old smartphone with a swollen lithium-ion battery",
-            "options": ["🟦 Blue Bin (Dry Recyclable)", "🟥 Red Bin (Domestic Reject / Landfill)", "⬛ Black Bin (Authorized E-Waste Hub)"],
-            "correct": "⬛ Black Bin (Authorized E-Waste Hub)",
-            "ai_reason": "Crushed lithium-ion batteries cause fires in garbage compactors and MRF conveyor belts."
-        },
-        {
-            "id": "q5",
-            "item": "5. Used paper napkins / tissues soaked with food oil",
-            "options": ["🟦 Blue Bin (Dry Recyclable)", "🟩 Green Bin (Wet Compost / Reject)", "⬛ Black Bin (E-Waste)"],
-            "correct": "🟩 Green Bin (Wet Compost / Reject)",
-            "ai_reason": "Short, soiled tissue fibers cannot be recycled into new paper and contaminate clean paper bales."
+    c_map, c_calc = st.columns([1.2, 1], gap="large")
+
+    with c_map:
+        st.markdown("##### 📍 Authorized Drop-Off Hubs & Scrap Merchants")
+        selected_city = st.radio("Filter Hubs:", ["All Cities", "Nashik", "Mumbai", "Pune"], horizontal=True)
+        hubs_df = pd.DataFrame(FACILITIES_DB)
+        filtered_hubs = hubs_df if selected_city == "All Cities" else hubs_df[hubs_df["city"] == selected_city]
+
+        city_views = {
+            "Nashik": {"lat": 19.98, "lon": 73.77, "zoom": 11},
+            "Mumbai": {"lat": 19.11, "lon": 72.87, "zoom": 11},
+            "Pune": {"lat": 18.52, "lon": 73.85, "zoom": 11},
+            "All Cities": {"lat": 19.25, "lon": 73.40, "zoom": 7}
         }
-    ]
+        view = city_views[selected_city]
 
-    with st.form("benchmark_form"):
-        user_answers = {}
-        for q in quiz_items:
-            user_answers[q["id"]] = st.radio(q["item"], q["options"], index=0, key=q["id"])
-        submitted = st.form_submit_button("📊 Calculate My Contamination Reduction Rate")
+        st.map(filtered_hubs, latitude="lat", longitude="lon", size=400, color="#10b981", zoom=view["zoom"])
+        st.dataframe(filtered_hubs[["name", "type", "city", "hours", "contact"]], use_container_width=True, hide_index=True)
 
-    if submitted:
-        correct_count = sum(1 for q in quiz_items if user_answers[q["id"]] == q["correct"])
-        human_acc = (correct_count / len(quiz_items)) * 100
-        human_contam = 100 - human_acc
+    with c_calc:
+        st.markdown("##### 💵 Household Scrap Resale Calculator")
+        st.caption("Standard scrap market benchmark rates (Nashik, Mumbai, Pune):")
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Unassisted Human Sorting Accuracy", f"{human_acc:.0f}%", f"{correct_count}/5 Correct")
-        c2.metric("WasteSight AI Triage Accuracy", "100%", f"+{100 - human_acc:.0f}% Improvement")
-        c3.metric("Source Contamination Reduction", f"{human_contam:.0f}% Prevented", "Zero Wish-Cycling")
+        c1, c2 = st.columns(2)
+        with c1:
+            kg_newspaper = st.number_input("📰 Newspaper (kg)", min_value=0.0, value=5.0, step=0.5)
+            kg_cardboard = st.number_input("📦 Cardboard (kg)", min_value=0.0, value=3.0, step=0.5)
+            kg_bottles = st.number_input("🍶 PET Bottles (kg)", min_value=0.0, value=2.0, step=0.5)
+        with c2:
+            kg_metal = st.number_input("🥫 Tin / Iron (kg)", min_value=0.0, value=1.0, step=0.5)
+            kg_alucans = st.number_input("🥤 Aluminum (kg)", min_value=0.0, value=0.5, step=0.1)
+            kg_ewaste = st.number_input("📱 Small E-Waste (kg)", min_value=0.0, value=0.5, step=0.1)
 
-        for q in quiz_items:
-            if user_answers[q["id"]] == q["correct"]:
-                st.success(f"✅ **{q['item']}** — Correct! ({q['correct']})")
-            else:
-                st.error(f"❌ **{q['item']}** — You chose *{user_answers[q['id']]}*, which causes contamination! **WasteSight AI Route:** {q['correct']} — *{q['ai_reason']}*")
+        total_earnings = (kg_newspaper * 14.0) + (kg_cardboard * 12.0) + (kg_bottles * 18.0) + (kg_metal * 30.0) + (kg_alucans * 110.0) + (kg_ewaste * 150.0)
+        total_diverted = kg_newspaper + kg_cardboard + kg_bottles + kg_metal + kg_alucans + kg_ewaste
+
+        st.markdown("---")
+        m1, m2 = st.columns(2)
+        m1.metric("Estimated Scrap Payout", f"₹{total_earnings:.2f}", "From Scrap Buyer")
+        m2.metric("Total Recyclables Sold", f"{total_diverted:.1f} kg", "Diverted from Landfill")
+
+        st.success("💡 **Apartment Society Tip:** A 50-flat society generates ~120 kg cardboard/month = ₹1,500–₹3,000 extra maintenance fund!")
 
 # ==========================================
-# TAB 3: IMPACT ANALYTICS & SOCIETY AUDIT REPORT
+# PILLAR 3: IMPACT LEDGER & SOCIETY AUDIT
 # ==========================================
 with tab_analytics:
-    st.subheader("📊 Real-Time Environmental Impact & Municipal Audit Ledger")
+    st.subheader("📊 Municipal Impact Analytics & Certified Audit Exporter")
 
     col_chart, col_table = st.columns([1, 1.2], gap="large")
     with col_chart:
-        st.markdown("##### Segregated Waste Breakdown by Stream")
+        st.markdown("##### Live Waste Stream Breakdown")
         chart_df = pd.DataFrame({
             "Waste Stream": list(st.session_state.category_counts.keys()),
             "Items Count": list(st.session_state.category_counts.values())
@@ -680,20 +700,20 @@ with tab_analytics:
         st.bar_chart(chart_df, color="#10b981")
 
     with col_table:
-        st.markdown("##### Verified Scan Audit Log")
+        st.markdown("##### Verified Item Audit Ledger")
         if len(st.session_state.audit_log) == 0:
-            st.info("No items scanned in this session yet. Scan an item in Tab 1 to populate the live audit ledger.")
+            st.info("No items scanned in this session yet. Scan an item in Tab 1 to populate the ledger.")
         else:
             log_df = pd.DataFrame(st.session_state.audit_log)
             st.dataframe(log_df, use_container_width=True, hide_index=True)
 
-            with st.expander("🏢 Campus / Apartment Society Audit Configuration", expanded=False):
+            with st.expander("🏢 Configure Society / Campus Audit Details", expanded=False):
                 ca1, ca2 = st.columns(2)
                 with ca1:
-                    soc_name = st.text_input("Premises / Society Name", value="Green Meadows Co-op Housing")
-                    ward_zone = st.text_input("Municipal Ward / Zone", value="Ward 14 - Nashik West")
+                    soc_name = st.text_input("Society / Facility Name", value="Green Meadows Co-op Housing")
+                    ward_zone = st.text_input("Municipal Ward", value="Ward 14 - Nashik West")
                 with ca2:
-                    auditor_name = st.text_input("Auditor / Lead ID", value="Ashlesha (WasteSight Lead)")
+                    auditor_name = st.text_input("Auditor Name", value="Ashlesha (WasteSight Lead)")
                     audit_date = st.date_input("Audit Date", value=datetime.today())
 
             total_items = len(log_df)
@@ -730,15 +750,49 @@ with tab_analytics:
                 mime="text/csv"
             )
 
-    # Empirical User Trial & Model Performance Visuals
+# ==========================================
+# PILLAR 4: SCIENTIFIC BENCHMARKS & PROOF
+# ==========================================
+with tab_validation:
+    st.subheader("🧪 Hackathon Theme Track Validation & Empirical Evidence")
+    st.write("Municipal Material Recovery Facilities (MRFs) lose up to **30–40% of recyclable batches** due to *wish-cycling*. Here is how WasteSight AI Pro proves contamination reduction:")
+
+    # 1. Interactive Wish-Cycling Quiz
+    st.markdown("#### 1. Interactive Wish-Cycling Contamination Benchmark")
+    quiz_items = [
+        {"id": "q1", "item": "1. Greasy cheese-soaked pizza box bottom", "options": ["🟦 Blue Bin (Dry Recyclable)", "🟩 Green Bin (Wet Compost)", "⬛ Black Bin (E-Waste)"], "correct": "🟩 Green Bin (Wet Compost)", "ai_reason": "Grease ruins entire paper-pulping batches. Clean lids go in Dry Paper; greasy bottoms must be composted."},
+        {"id": "q2", "item": "2. White Styrofoam (Thermocol) block", "options": ["🟦 Blue Bin (Dry Recyclable)", "🟩 Green Bin (Wet Compost)", "🟥 Red Bin (Domestic Reject / Landfill)"], "correct": "🟥 Red Bin (Domestic Reject / Landfill)", "ai_reason": "Expanded Polystyrene is not recyclable in municipal blue bins and shatters into microplastics."},
+        {"id": "q3", "item": "3. Rinsed clear PET #1 bottle", "options": ["🟦 Blue Bin (Dry Recyclable)", "🟥 Red Bin (Reject)", "🟩 Green Bin (Wet Compost)"], "correct": "🟦 Blue Bin (Dry Recyclable)", "ai_reason": "PET #1 has the highest recovery rate when clean and crushed."},
+        {"id": "q4", "item": "4. Smartphone with swollen battery", "options": ["🟦 Blue Bin (Dry Recyclable)", "🟥 Red Bin (Reject)", "⬛ Black Bin (Authorized E-Waste Hub)"], "correct": "⬛ Black Bin (Authorized E-Waste Hub)", "ai_reason": "Crushed lithium batteries cause trash compactor and conveyor belt fires."},
+        {"id": "q5", "item": "5. Oily used paper tissues", "options": ["🟦 Blue Bin (Dry Recyclable)", "🟩 Green Bin (Wet Compost / Reject)", "⬛ Black Bin (E-Waste)"], "correct": "🟩 Green Bin (Wet Compost / Reject)", "ai_reason": "Short soiled fibers cannot be pulped into clean paper."}
+    ]
+
+    with st.form("benchmark_form"):
+        user_answers = {}
+        for q in quiz_items:
+            user_answers[q["id"]] = st.radio(q["item"], q["options"], index=0, key=q["id"])
+        submitted = st.form_submit_button("📊 Measure My Contamination Reduction Rate")
+
+    if submitted:
+        correct_count = sum(1 for q in quiz_items if user_answers[q["id"]] == q["correct"])
+        human_acc = (correct_count / len(quiz_items)) * 100
+        human_contam = 100 - human_acc
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Unassisted Human Accuracy", f"{human_acc:.0f}%", f"{correct_count}/5 Correct")
+        c2.metric("WasteSight AI Accuracy", "100%", f"+{100 - human_acc:.0f}% Improvement")
+        c3.metric("Contamination Prevented", f"{human_contam:.0f}% Prevented", "Zero Wish-Cycling")
+
+    # 2. Real-World Empirical Trial
     if os.path.exists("trial_benchmark.png"):
         st.markdown("---")
-        st.subheader("🧪 200-Item Empirical Contamination Reduction Trial")
-        st.image("trial_benchmark.png", caption="Controlled Trial: 10 Testers × 20 Diverse Household Items (38% to 4% Sorting Error Reduction)", use_container_width=True)
+        st.markdown("#### 2. Real-World Empirical User Trial (200 Items)")
+        st.image("trial_benchmark.png", caption="Controlled Trial: 10 Testers × 20 Diverse Household Items (38% to 4% Error Reduction)", use_container_width=True)
 
+    # 3. Model Convergence Graphs
     if os.path.exists("results.png") or os.path.exists("confusion_matrix.png"):
         st.markdown("---")
-        st.subheader(f"📈 {active_engine_name} Training Convergence & Confusion Matrix")
+        st.markdown(f"#### 3. {active_engine_name} Training Convergence & Confusion Matrix")
         g1, g2 = st.columns(2)
         with g1:
             if os.path.exists("results.png"):
@@ -747,99 +801,12 @@ with tab_analytics:
             if os.path.exists("confusion_matrix.png"):
                 st.image("confusion_matrix.png", caption="Confusion Matrix Across Packaging Classes", use_container_width=True)
 
-# ==========================================
-# TAB 4: E-WASTE & RECYCLING DROP-OFF MAP
-# ==========================================
-with tab_map:
-    st.subheader("🗺️ Authorized Municipal Hubs, Scrap Centers & Biomethanation Plants")
-    st.write("Route segregated items to authorized scrap buyers, biomethanation units, and MRF stations:")
-
-    hubs_df = pd.DataFrame(FACILITIES_DB)
-
-    selected_city = st.radio(
-        "📍 Filter Facilities by City:",
-        ["All Cities", "Nashik", "Mumbai", "Pune"],
-        horizontal=True
-    )
-
-    filtered_hubs = hubs_df if selected_city == "All Cities" else hubs_df[hubs_df["city"] == selected_city]
-
-    city_views = {
-        "Nashik": {"lat": 19.98, "lon": 73.77, "zoom": 11},
-        "Mumbai": {"lat": 19.11, "lon": 72.87, "zoom": 11},
-        "Pune": {"lat": 18.52, "lon": 73.85, "zoom": 11},
-        "All Cities": {"lat": 19.25, "lon": 73.40, "zoom": 7}
-    }
-    view = city_views[selected_city]
-
-    st.map(
-        filtered_hubs,
-        latitude="lat",
-        longitude="lon",
-        size=400,
-        color="#10b981",
-        zoom=view["zoom"]
-    )
-    st.dataframe(
-        filtered_hubs[["name", "type", "city", "hours", "contact"]],
-        use_container_width=True,
-        hide_index=True
-    )
-
-# ==========================================
-# TAB 5: SCRAP-TO-CASH & CIRCULAR MARKETPLACE
-# ==========================================
-with tab_market:
-    st.subheader("💰 Scrap-to-Cash Calculator & Circular Marketplace")
-    st.write("Turn your household waste into income or zero-cost organic fertilizer rather than sending it to overflowing landfills.")
-
-    col_calc, col_guides = st.columns([1.1, 1], gap="large")
-
-    with col_calc:
-        st.markdown("#### 💵 Live Household Scrap Resale Calculator")
-        st.caption("Benchmark scrap prices across Maharashtra (Nashik, Pune, Mumbai):")
-
-        c1, c2 = st.columns(2)
-        with c1:
-            kg_newspaper = st.number_input("📰 Newspaper / Raddi (kg)", min_value=0.0, value=5.0, step=0.5)
-            kg_cardboard = st.number_input("📦 Corrugated Cardboard (kg)", min_value=0.0, value=3.0, step=0.5)
-            kg_bottles = st.number_input("🍶 PET Plastic Bottles (kg)", min_value=0.0, value=2.0, step=0.5)
-        with c2:
-            kg_metal = st.number_input("🥫 Tin / Metal Scrap (kg)", min_value=0.0, value=1.0, step=0.5)
-            kg_alucans = st.number_input("🥤 Aluminum Cans (kg)", min_value=0.0, value=0.5, step=0.1)
-            kg_ewaste = st.number_input("📱 Small E-Waste / Peripherals (kg)", min_value=0.0, value=0.5, step=0.1)
-
-        val_newspaper = kg_newspaper * 14.0
-        val_cardboard = kg_cardboard * 12.0
-        val_bottles = kg_bottles * 18.0
-        val_metal = kg_metal * 30.0
-        val_alucans = kg_alucans * 110.0
-        val_ewaste = kg_ewaste * 150.0
-
-        total_earnings = val_newspaper + val_cardboard + val_bottles + val_metal + val_alucans + val_ewaste
-        total_diverted_kg = kg_newspaper + kg_cardboard + kg_bottles + kg_metal + kg_alucans + kg_ewaste
-
-        st.markdown("---")
-        m_cash1, m_cash2 = st.columns(2)
-        m_cash1.metric("Estimated Cash Payout", f"₹{total_earnings:.2f}", "From Verified Scrap Dealer")
-        m_cash2.metric("Total Clean Recyclables", f"{total_diverted_kg:.1f} kg", "Diverted from Landfill")
-
-        st.info("💡 **Pro-Tip for Societies:** An apartment complex of 50 flats generates ~120 kg of cardboard and ₹2,500–₹4,000 monthly in scrap revenue when segregated at source!")
-
-    with col_guides:
-        st.markdown("#### 🌱 Core Home Upcycling Principles")
-        st.markdown("""
-        1. **Separate Clean from Soiled:** Clean paper and unsoiled plastics have direct cash scrap value. Keep them dry!
-        2. **Feed Soil, Don't Fill Landfills:** Kitchen scraps that cannot be eaten rot in landfills and emit methane ($\text{CH}_4$). At home, their potassium, phosphorus, and nitrogen feed plants directly.
-        3. **Safe E-Waste Channeling:** Never mix dead batteries or old USB chargers with household trash to prevent toxic lithium and lead leaching.
-        """)
-
-# Populate Top Metrics
+# Top 4-Column Live Metric Dashboard
 with dashboard_placeholder.container():
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("📦 Items Segregated", st.session_state.scans, "Live Session")
-    m2.metric("⚖️ Waste Diverted from Landfill", f"{st.session_state.diverted_g} g", "Source Segregated")
-    m3.metric("🌿 CO₂e Emissions Prevented", f"{st.session_state.co2_saved_g} g", "Lifecycle Offset")
+    m2.metric("⚖️ Landfill Diverted", f"{st.session_state.diverted_g} g", "Source Segregated")
+    m3.metric("🌿 CO₂e Prevented", f"{st.session_state.co2_saved_g} g", "Lifecycle Offset")
     m4.metric("🛡️ Edge Triage Engines", f"Dual {active_engine_name.split()[0]} + LiteRT", "42.7 MB .tflite Ready")
 
 sidebar_scans.metric("Items Segregated", st.session_state.scans)
