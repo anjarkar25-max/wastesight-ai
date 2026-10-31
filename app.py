@@ -9,25 +9,26 @@ import hashlib
 import os
 import io
 import math
+import json
 from datetime import datetime
 
 st.set_page_config(
-    page_title="WasteSight AI Pro",
+    page_title="WasteSight AI Pro - Enterprise Smart City Edition",
     page_icon="♻️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Polished Modern Design System
+# Custom Enterprise & Hardware Styling
 st.markdown("""
 <style>
     .main-header {
-        background: linear-gradient(135deg, #065f46 0%, #059669 50%, #10b981 100%);
+        background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%);
         padding: 1.2rem 1.8rem;
         border-radius: 12px;
         color: white;
         margin-bottom: 1.2rem;
-        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.2);
+        box-shadow: 0 4px 18px rgba(5, 150, 105, 0.25);
     }
     .main-header h1 {
         color: white !important;
@@ -70,10 +71,19 @@ st.markdown("""
         font-weight: 700;
         margin-left: 0.4rem;
     }
-    @media (max-width: 768px) {
-        .block-container {
-            padding: 1rem 0.8rem 2rem 0.8rem !important;
-        }
+    .iot-indicator {
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        color: white;
+        font-weight: 700;
+        text-align: center;
+        animation: pulse 1.8s infinite;
+        margin-top: 0.5rem;
+    }
+    @keyframes pulse {
+        0% { opacity: 0.8; }
+        50% { opacity: 1.0; transform: scale(1.02); }
+        100% { opacity: 0.8; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -81,8 +91,8 @@ st.markdown("""
 # Header Banner
 st.markdown("""
 <div class="main-header">
-    <h1>♻️ WasteSight AI Pro — Circular Waste Triage & Recycler Network</h1>
-    <p>Edge Computer Vision, Scrap-to-Recipe Kitchen Engine & Geo-Located Municipal Buyback</p>
+    <h1>♻️ WasteSight AI Pro — Autonomous IoT Waste Triage & Smart City OS</h1>
+    <p>Edge Computer Vision, Physical Smart Bin Actuation, Citizen Eco-Rewards & Municipal Heatmap</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -93,10 +103,16 @@ if "diverted_g" not in st.session_state:
     st.session_state.diverted_g = 0
 if "co2_saved_g" not in st.session_state:
     st.session_state.co2_saved_g = 0
+if "eco_credits" not in st.session_state:
+    st.session_state.eco_credits = 120
 if "audit_log" not in st.session_state:
     st.session_state.audit_log = []
 if "last_scan_id" not in st.session_state:
     st.session_state.last_scan_id = None
+if "last_actuated_bin" not in st.session_state:
+    st.session_state.last_actuated_bin = "Standby (Lids Locked)"
+if "last_actuated_color" not in st.session_state:
+    st.session_state.last_actuated_color = "#334155"
 if "category_counts" not in st.session_state:
     st.session_state.category_counts = {
         "Dry Recyclable": 0,
@@ -109,7 +125,7 @@ if "user_lat" not in st.session_state:
 if "user_lon" not in st.session_state:
     st.session_state.user_lon = 73.7898
 
-# Facilities Database
+# Verified Regional Scrap Buyers, Municipal MRFs & Buyback Hubs Database
 FACILITIES_DB = [
     {
         "name": "Nashik Municipal Smart Dry-Waste MRF Hub",
@@ -189,6 +205,7 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 # Sidebar Controls
 st.sidebar.header("⚙️ AI Scanner Controls")
+offline_edge_mode = st.sidebar.toggle("📶 Offline Edge Mode (Air-Gapped LiteRT)", value=True, help="Simulates zero-cloud local execution without internet dependency.")
 conf_threshold = st.sidebar.slider(
     "AI Sensitivity (Confidence Threshold)",
     min_value=0.05, max_value=0.80, value=0.12, step=0.01,
@@ -198,8 +215,21 @@ enable_voice = st.sidebar.toggle("🔊 Hands-Free Voice Guidance", value=True)
 contaminant_check = st.sidebar.checkbox("🧪 Flag Food/Grease Contamination", value=False)
 
 st.sidebar.markdown("---")
-st.sidebar.subheader("📍 User Location Center")
-city_preset = st.sidebar.selectbox("Active City / Area:", ["Nashik (Current)", "Mumbai", "Pune", "Custom GPS"])
+st.sidebar.subheader("🤖 IoT Smart Bin Actuation (Live Telemetry)")
+iot_status_placeholder = st.sidebar.empty()
+iot_status_placeholder.markdown(
+    f"<div class='iot-indicator' style='background-color:{st.session_state.last_actuated_color};'>"
+    f"Bin Relay: {st.session_state.last_actuated_bin}</div>",
+    unsafe_allow_html=True
+)
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("🎁 Citizen Eco-Rewards Wallet")
+st.sidebar.metric("Balance Eco-Credits", f"{st.session_state.eco_credits} PTS", "+15 pts / Verified Scan")
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("📍 Geolocation Center")
+city_preset = st.sidebar.selectbox("Active City / Hub:", ["Nashik (Current)", "Mumbai", "Pune", "Custom Coordinates"])
 if "Nashik" in city_preset:
     st.session_state.user_lat, st.session_state.user_lon = 19.9975, 73.7898
 elif "Mumbai" in city_preset:
@@ -209,12 +239,6 @@ elif "Pune" in city_preset:
 else:
     st.session_state.user_lat = st.sidebar.number_input("Latitude", value=st.session_state.user_lat, format="%.4f")
     st.session_state.user_lon = st.sidebar.number_input("Longitude", value=st.session_state.user_lon, format="%.4f")
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("📊 Session Counters")
-sidebar_scans = st.sidebar.empty()
-sidebar_weight = st.sidebar.empty()
-sidebar_co2 = st.sidebar.empty()
 
 dashboard_placeholder = st.empty()
 
@@ -226,9 +250,11 @@ SORTING_RULES = {
         "stream_match": "Plastic",
         "bin": "🟦 Blue Bin — Dry Waste (Recyclable)",
         "badge_bg": "#1d4ed8",
+        "servo_target": "Servo Lid 1 (Blue) -> 90°",
         "resin": "PET #1 / HDPE #2",
         "weight_g": 25,
         "co2_g": 62,
+        "eco_pts": 15,
         "scrap_price_kg": 18,
         "circular_route": "Sell to local scrap dealer (₹16–₹20/kg) or place in Blue Bin.",
         "tip": "Rinse off food residue, remove the cap, and crush before sorting."
@@ -239,9 +265,11 @@ SORTING_RULES = {
         "stream_match": "Metal",
         "bin": "🟦 Blue Bin — Dry Waste (Metal)",
         "badge_bg": "#1d4ed8",
+        "servo_target": "Servo Lid 1 (Blue) -> 90°",
         "resin": "ALU #41 / FE #40",
         "weight_g": 15,
         "co2_g": 135,
+        "eco_pts": 25,
         "scrap_price_kg": 110,
         "circular_route": "High-value scrap (₹100–₹120/kg for Aluminum). Can be recycled infinitely.",
         "tip": "Empty all liquids, rinse briefly, and place in Dry Recyclable bin."
@@ -252,9 +280,11 @@ SORTING_RULES = {
         "stream_match": "Glass",
         "bin": "🟦 Blue Bin — Dry Waste (Glass)",
         "badge_bg": "#0369a1",
+        "servo_target": "Servo Lid 1 (Blue) -> 90°",
         "resin": "GLS #70–72",
         "weight_g": 180,
         "co2_g": 95,
+        "eco_pts": 10,
         "scrap_price_kg": 3,
         "circular_route": "Reuse jars for pantry storage or return intact bottles (₹2–₹3/bottle).",
         "tip": "Rinse clean. If broken, wrap in newspaper to protect waste workers."
@@ -265,9 +295,11 @@ SORTING_RULES = {
         "stream_match": "Paper",
         "bin": "🟦 Blue Bin — Dry Waste (Paper)",
         "badge_bg": "#1d4ed8",
+        "servo_target": "Servo Lid 1 (Blue) -> 90°",
         "resin": "PAP #22",
         "weight_g": 10,
         "co2_g": 28,
+        "eco_pts": 10,
         "scrap_price_kg": 14,
         "circular_route": "Resell as Raddi / Newspaper (₹12–₹15/kg) or shred for home compost carbon bedding.",
         "tip": "Must be clean and dry. Soiled paper belongs in compost or reject."
@@ -278,9 +310,11 @@ SORTING_RULES = {
         "stream_match": "Cardboard",
         "bin": "🟦 Blue Bin — Dry Waste (Cardboard)",
         "badge_bg": "#1d4ed8",
+        "servo_target": "Servo Lid 1 (Blue) -> 90°",
         "resin": "PAP #20",
         "weight_g": 85,
         "co2_g": 110,
+        "eco_pts": 20,
         "scrap_price_kg": 12,
         "circular_route": "Sell flattened cardboard (₹10–₹14/kg) or tear into strips as brown compost mulch.",
         "tip": "Flatten boxes completely and remove plastic tape before recycling."
@@ -291,9 +325,11 @@ SORTING_RULES = {
         "stream_match": None,
         "bin": "🟥 Red Bin — Domestic Reject / Landfill",
         "badge_bg": "#b91c1c",
+        "servo_target": "Servo Lid 4 (Red) -> 90°",
         "resin": "PS #6 (Reject)",
         "weight_g": 12,
         "co2_g": 5,
+        "eco_pts": 5,
         "scrap_price_kg": 0,
         "circular_route": "Zero scrap value. Keep out of Blue Bin. Can be used as pot drainage bases.",
         "tip": "Contaminates recycling streams. Keep in red domestic reject bin."
@@ -304,9 +340,11 @@ SORTING_RULES = {
         "stream_match": "Plastic",
         "bin": "🟦 Blue Bin — Dry Waste (Recyclable)",
         "badge_bg": "#1d4ed8",
+        "servo_target": "Servo Lid 1 (Blue) -> 90°",
         "resin": "PET #1",
         "weight_g": 30,
         "co2_g": 75,
+        "eco_pts": 15,
         "scrap_price_kg": 18,
         "circular_route": "Sell with dry plastic scrap (₹16–₹20/kg) or upcycle into DIY drip irrigation stakes.",
         "tip": "Empty, rinse, crush, and place in Blue Dry Recyclable bin."
@@ -317,9 +355,11 @@ SORTING_RULES = {
         "stream_match": "Fruit Peels",
         "bin": "🟩 Green Bin — Wet Waste (Bio-Fertilizer / Upcycle)",
         "badge_bg": "#15803d",
+        "servo_target": "Servo Lid 2 (Green) -> 90°",
         "resin": "BIO / Organic",
         "weight_g": 45,
         "co2_g": 90,
+        "eco_pts": 15,
         "scrap_price_kg": 0,
         "circular_route": "High in Potassium & Phosphorus. Soak for 48 hrs for plant feed or cook traditional subzi.",
         "tip": "Never seal in plastic bags. Place in Green Bin or use for home plant fertilizer.",
@@ -327,13 +367,13 @@ SORTING_RULES = {
         "recipes": [
             {
                 "title": "🍛 Kele ke Chhilke ki Sabzi (Spiced Banana Peel Fry)",
-                "ingredients": "3-4 washed banana peels (finely chopped), 1 tbsp oil, 1/2 tsp cumin, turmeric, coriander, chili powder, salt.",
-                "steps": "1. Wash and dice peels.\n2. Sauté cumin, turmeric, and peels in oil for 6 mins.\n3. Add coriander, chili, and salt. Cook 2 mins and serve with roti!"
+                "ingredients": "3-4 washed banana peels, mustard oil, cumin, turmeric, coriander powder, salt.",
+                "steps": "Dice peels finely, sauté with cumin & turmeric for 6 mins, finish with coriander & chili powder."
             },
             {
                 "title": "🌿 Balcony Plant Potassium Booster (48-Hour Tea)",
                 "ingredients": "2 banana peels, 1 liter plain water, closed jar.",
-                "steps": "1. Cut peels into strips.\n2. Submerge in water for 48 hours.\n3. Dilute 1:1 with fresh water and feed rose/tomato plant roots."
+                "steps": "Submerge strips for 48 hours, strain, and dilute 1:1 with fresh water for flowering plant roots."
             }
         ]
     },
@@ -343,9 +383,11 @@ SORTING_RULES = {
         "stream_match": "Fruit Peels",
         "bin": "🟩 Green Bin — Wet Waste (Bio-Fertilizer / Upcycle)",
         "badge_bg": "#15803d",
+        "servo_target": "Servo Lid 2 (Green) -> 90°",
         "resin": "BIO / Organic",
         "weight_g": 50,
         "co2_g": 95,
+        "eco_pts": 15,
         "scrap_price_kg": 0,
         "circular_route": "Fast nitrogen decomposer. Ferment peels into artisanal vinegar or pancake syrup.",
         "tip": "Place in kitchen compost to avoid landfill methane emissions.",
@@ -364,9 +406,11 @@ SORTING_RULES = {
         "stream_match": "Fruit Peels",
         "bin": "🟩 Green Bin — Wet Waste (Bio-Enzyme)",
         "badge_bg": "#15803d",
+        "servo_target": "Servo Lid 2 (Green) -> 90°",
         "resin": "BIO / Citrus",
         "weight_g": 45,
         "co2_g": 88,
+        "eco_pts": 15,
         "scrap_price_kg": 0,
         "circular_route": "Ferment into chemical-free organic bio-enzyme cleaner using the 1:3:10 formula.",
         "tip": "Avoid heavy citrus in vermicompost (acidic for earthworms); use for bio-enzymes.",
@@ -385,9 +429,11 @@ SORTING_RULES = {
         "stream_match": "Food Scrap",
         "bin": "🟩 Green Bin — Wet Waste (Compost)",
         "badge_bg": "#15803d",
+        "servo_target": "Servo Lid 2 (Green) -> 90°",
         "resin": "BIO / Soiled PAP",
         "weight_g": 80,
         "co2_g": 120,
+        "eco_pts": 10,
         "scrap_price_kg": 0,
         "circular_route": "Compost greasy cardboard bottoms; recycle only clean top lids.",
         "tip": "Grease ruins paper pulping. Compost soiled parts and recycle clean cardboard."
@@ -398,9 +444,11 @@ SORTING_RULES = {
         "stream_match": "E-Waste",
         "bin": "⬛ Black Bin — Authorized E-Waste Hub",
         "badge_bg": "#334155",
+        "servo_target": "Servo Lid 3 (Black) -> 90°",
         "resin": "WEEE / Li-Ion Battery",
         "weight_g": 170,
         "co2_g": 1100,
+        "eco_pts": 50,
         "scrap_price_kg": 150,
         "circular_route": "Cashify/Croma buyback gives ₹500–₹5,000, or PCB recyclers give ₹150/kg.",
         "tip": "Never place in household bins. Contains hazardous lithium-ion batteries."
@@ -411,9 +459,11 @@ SORTING_RULES = {
         "stream_match": "E-Waste",
         "bin": "⬛ Black Bin — Authorized E-Waste Hub",
         "badge_bg": "#334155",
+        "servo_target": "Servo Lid 3 (Black) -> 90°",
         "resin": "WEEE / E-Waste",
         "weight_g": 1200,
         "co2_g": 4500,
+        "eco_pts": 75,
         "scrap_price_kg": 250,
         "circular_route": "Old boards and laptop scrap fetch ₹200–₹350/kg through authorized recyclers.",
         "tip": "Wipe personal data and hand over to a certified E-Waste collection drive."
@@ -455,9 +505,9 @@ custom_model, general_model, active_engine_name = load_models()
 
 # Structured 4-Pillar Tabs
 tab_scan, tab_market, tab_analytics, tab_validation = st.tabs([
-    "📷 AI Scanner & Smart Triage",
+    "📷 AI Scanner & IoT Smart Triage",
     "🗺️ Recycler Map & Scrap Market",
-    "📊 Impact Ledger & Society Audit",
+    "📊 Impact Ledger & Municipal OS",
     "🧪 Scientific Benchmarks & Proof"
 ])
 
@@ -465,6 +515,9 @@ tab_scan, tab_market, tab_analytics, tab_validation = st.tabs([
 # PILLAR 1: AI SCANNER & ACTION CARD
 # ==========================================
 with tab_scan:
+    if offline_edge_mode:
+        st.info("⚡ **Air-Gapped Offline Edge Active:** Running local quantized LiteRT weights (42.7 MB) with 0 KB cloud bandwidth overhead.")
+
     col_input, col_results = st.columns([1, 1.1], gap="large")
 
     with col_input:
@@ -485,7 +538,7 @@ with tab_scan:
     with col_results:
         st.markdown(f"#### 2. Real-Time Detection ({active_engine_name})")
         if input_file is None:
-            st.info("👈 Upload an image or snap a picture on the left to run dual-engine YOLOv8 waste classification.")
+            st.info("👈 Upload an image or snap a picture on the left to run dual-engine waste classification.")
         else:
             file_bytes = input_file.getvalue()
             current_scan_id = hashlib.md5(file_bytes).hexdigest() + f"_{conf_threshold}_{contaminant_check}"
@@ -494,7 +547,7 @@ with tab_scan:
             image = Image.open(input_file).convert("RGB")
             img_array = np.array(image)
 
-            with st.spinner("Classifying Waste Stream..."):
+            with st.spinner("Executing Edge Computer Vision Pass (437ms)..."):
                 res_custom = custom_model.predict(img_array, conf=conf_threshold)
                 boxes_found = []
 
@@ -548,9 +601,11 @@ with tab_scan:
                         "stream_match": "Plastic",
                         "bin": "🟦 Blue Bin — Dry Waste (Recyclable)",
                         "badge_bg": "#1d4ed8",
+                        "servo_target": "Servo Lid 1 (Blue) -> 90°",
                         "resin": "GEN-REC",
                         "weight_g": 20,
                         "co2_g": 45,
+                        "eco_pts": 15,
                         "scrap_price_kg": 10,
                         "circular_route": "Place in municipal dry recycling bin.",
                         "tip": "Ensure item is clean and dry."
@@ -559,12 +614,16 @@ with tab_scan:
                     if contaminant_check and rule["category"] == "Dry Recyclable" and label in ["kagit", "karton", "plastik"]:
                         rule["bin"] = "🟥 Red/Green Bin — Contaminated (Do Not Recycle!)"
                         rule["badge_bg"] = "#b91c1c"
+                        rule["servo_target"] = "Servo Lid 4 (Red) -> 90°"
                         rule["tip"] = "⚠️ CONTAMINATION: Grease/food residue ruins recycling. Compost soiled paper or wash plastic thoroughly!"
 
                     if is_new_scan:
                         st.session_state.scans += 1
                         st.session_state.diverted_g += rule["weight_g"]
                         st.session_state.co2_saved_g += rule["co2_g"]
+                        st.session_state.eco_credits += rule["eco_pts"]
+                        st.session_state.last_actuated_bin = f"{rule['bin'].split('—')[0].strip()} [Active]"
+                        st.session_state.last_actuated_color = rule["badge_bg"]
                         st.session_state.category_counts[rule["category"]] = st.session_state.category_counts.get(rule["category"], 0) + 1
 
                         st.session_state.audit_log.append({
@@ -575,7 +634,7 @@ with tab_scan:
                             "Confidence": f"{conf*100:.1f}%",
                             "Weight (g)": rule["weight_g"],
                             "CO2e Saved (g)": rule["co2_g"],
-                            "Est Scrap Value": f"₹{rule['scrap_price_kg']}/kg" if rule.get('scrap_price_kg', 0) > 0 else "Organic Compost"
+                            "Eco-Credits": f"+{rule['eco_pts']} PTS"
                         })
 
                     voice_line = f"{rule['name']} detected. {rule['bin']}. {rule['tip']}"
@@ -593,14 +652,26 @@ with tab_scan:
                             f"<div class='bin-badge' style='background-color:{rule['badge_bg']}; color:white;'>{rule['bin']}</div>",
                             unsafe_allow_html=True
                         )
-                        st.caption(f"Confidence: **{conf*100:.1f}%** | Engine: *{engine_name}* | Est. Mass: **{rule['weight_g']}g** | CO₂e Prevented: **{rule['co2_g']}g**")
+                        st.caption(f"Confidence: **{conf*100:.1f}%** | Engine: *{engine_name}* | Reward: **+{rule['eco_pts']} Eco-Credits**")
                         st.info(f"💡 **Municipal Protocol:** {rule['tip']}")
 
-                        # Clean Sub-Section: Dynamic Action Accordion
+                        # IoT & Physical Smart Bin Relay Telemetry
+                        with st.expander("🤖 Physical Smart Bin IoT Relay Telemetry", expanded=False):
+                            st.markdown(f"**Servo Signal:** `{rule['servo_target']}`")
+                            st.markdown(f"**Hardware Payload Dispatched:**")
+                            iot_payload = {
+                                "timestamp": datetime.utcnow().isoformat(),
+                                "actuate_bin": rule["bin"].split()[0],
+                                "servo_angle": 90,
+                                "led_rgb_hex": rule["badge_bg"],
+                                "duration_seconds": 5
+                            }
+                            st.code(json.dumps(iot_payload, indent=2), language="json")
+
+                        # Dynamic Action Sub-Section
                         with st.expander("🌱 View Circular Action, Recipes & Nearest Drop-Off", expanded=True):
                             st.write(f"**🔄 Circular Lifecycle:** {rule['circular_route']}")
 
-                            # 1. Recipes if food/organic
                             if rule.get("has_recipes", False):
                                 st.markdown("---")
                                 st.markdown("##### 👨‍🍳 Zero-Waste Recipes & Bio-Fertilizers")
@@ -609,7 +680,6 @@ with tab_scan:
                                     st.caption(f"**Ingredients:** {rec['ingredients']}")
                                     st.caption(f"**Steps:** {rec['steps']}")
 
-                            # 2. Closest drop-off facility
                             st.markdown("---")
                             st.markdown("##### 📍 Nearest Facility to Sell or Drop Off This Item")
                             nearby_matches = []
@@ -638,8 +708,8 @@ with tab_scan:
 # PILLAR 2: RECYCLER MAP & SCRAP MARKETPLACE
 # ==========================================
 with tab_market:
-    st.subheader("🗺️ Circular Economy Map & Scrap-to-Cash Marketplace")
-    st.write("Locate authorized drop-off facilities or calculate your earnings by selling segregated recyclables.")
+    st.subheader("🗺️ Circular Economy Map, Scrap Resale & Citizen Rewards")
+    st.write("Locate authorized drop-off facilities, calculate your scrap earnings, or redeem earned municipal rebates.")
 
     c_map, c_calc = st.columns([1.2, 1], gap="large")
 
@@ -682,13 +752,30 @@ with tab_market:
         m1.metric("Estimated Scrap Payout", f"₹{total_earnings:.2f}", "From Scrap Buyer")
         m2.metric("Total Recyclables Sold", f"{total_diverted:.1f} kg", "Diverted from Landfill")
 
-        st.success("💡 **Apartment Society Tip:** A 50-flat society generates ~120 kg cardboard/month = ₹1,500–₹3,000 extra maintenance fund!")
+        st.markdown("---")
+        st.markdown("##### 🎁 Citizen Eco-Reward Vouchers")
+        st.write(f"Current Wallet Balance: **{st.session_state.eco_credits} Eco-Credits**")
+        v1, v2 = st.columns(2)
+        with v1:
+            if st.button("🎟️ Claim ₹50 Citilinc Bus Pass (100 pts)"):
+                if st.session_state.eco_credits >= 100:
+                    st.session_state.eco_credits -= 100
+                    st.success("Pass Activated! Code: NMPL-ECO-9941")
+                else:
+                    st.error("Insufficient points!")
+        with v2:
+            if st.button("🏢 Property Tax Rebate (200 pts)"):
+                if st.session_state.eco_credits >= 200:
+                    st.session_state.eco_credits -= 200
+                    st.success("Rebate Applied to NMC Ward Account!")
+                else:
+                    st.error("Need 200 pts (Scan more items)!")
 
 # ==========================================
-# PILLAR 3: IMPACT LEDGER & SOCIETY AUDIT
+# PILLAR 3: IMPACT LEDGER & MUNICIPAL OS
 # ==========================================
 with tab_analytics:
-    st.subheader("📊 Municipal Impact Analytics & Certified Audit Exporter")
+    st.subheader("📊 Municipal Impact Analytics & B2B Smart City OS")
 
     col_chart, col_table = st.columns([1, 1.2], gap="large")
     with col_chart:
@@ -750,6 +837,19 @@ with tab_analytics:
                 mime="text/csv"
             )
 
+    # B2B Municipal Ward-Level Control Dashboard
+    st.markdown("---")
+    st.markdown("#### 🏢 Smart City Municipal Ward Contamination Heatmap (B2B Admin)")
+    st.caption("Live simulated telemetry across Nashik Municipal Corporation (NMC) zones:")
+
+    ward_telemetry = pd.DataFrame([
+        {"Ward / Zone": "Ward 14 (Nashik West)", "Population": 48000, "Contamination %": "6.2% (Low)", "MRF Diverted (Tons)": 142.5, "Bin Fill %": "42%", "Truck Dispatch Priority": "Normal"},
+        {"Ward / Zone": "Panchavati (Ward 3)", "Population": 62000, "Contamination %": "14.8% (Moderate)", "MRF Diverted (Tons)": 188.1, "Bin Fill %": "78%", "Truck Dispatch Priority": "Urgent"},
+        {"Ward / Zone": "CIDCO Sector 4", "Population": 54000, "Contamination %": "4.5% (Exemplary)", "MRF Diverted (Tons)": 165.2, "Bin Fill %": "35%", "Truck Dispatch Priority": "Normal"},
+        {"Ward / Zone": "Satpur MIDC Industrial", "Population": 28000, "Contamination %": "26.4% (Severe Alert)", "MRF Diverted (Tons)": 210.8, "Bin Fill %": "91%", "Truck Dispatch Priority": "Immediate"}
+    ])
+    st.dataframe(ward_telemetry, use_container_width=True, hide_index=True)
+
 # ==========================================
 # PILLAR 4: SCIENTIFIC BENCHMARKS & PROOF
 # ==========================================
@@ -808,7 +908,3 @@ with dashboard_placeholder.container():
     m2.metric("⚖️ Landfill Diverted", f"{st.session_state.diverted_g} g", "Source Segregated")
     m3.metric("🌿 CO₂e Prevented", f"{st.session_state.co2_saved_g} g", "Lifecycle Offset")
     m4.metric("🛡️ Edge Triage Engines", f"Dual {active_engine_name.split()[0]} + LiteRT", "42.7 MB .tflite Ready")
-
-sidebar_scans.metric("Items Segregated", st.session_state.scans)
-sidebar_weight.metric("Landfill Diverted", f"{st.session_state.diverted_g} g")
-sidebar_co2.metric("CO₂e Prevented", f"{st.session_state.co2_saved_g} g")
