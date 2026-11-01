@@ -128,6 +128,18 @@ if "user_lon" not in st.session_state:
 # Verified Regional Scrap Buyers, Municipal MRFs & Buyback Hubs Database
 FACILITIES_DB = [
     {
+        "name": "Indira Nagar Scrap & Kabadiwala Co-Op",
+        "type": "Commercial Scrap Buyer (Buys in ₹)",
+        "streams": ["Plastic", "Cardboard", "Paper", "Metal"],
+        "buys_for_cash": True,
+        "lat": 19.9723,
+        "lon": 73.7805,
+        "city": "Nashik",
+        "hours": "8:30 AM – 7:00 PM",
+        "contact": "+91 98220 14590",
+        "query": "Scrap+Dealer+Kabadiwala+Indira+Nagar+Nashik"
+    },
+    {
         "name": "Nashik Municipal Smart Dry-Waste MRF Hub",
         "type": "Free Municipal MRF (Dry Recycling)",
         "streams": ["Plastic", "Paper", "Cardboard", "Metal", "Glass"],
@@ -136,43 +148,35 @@ FACILITIES_DB = [
         "lon": 73.7898,
         "city": "Nashik",
         "hours": "8:00 AM – 6:00 PM",
-        "contact": "Municipal Ward Solid Waste Cell"
+        "contact": "Municipal Ward Solid Waste Cell",
+        "query": "NMC+Solid+Waste+Management+Depot+Nashik"
     },
     {
-        "name": "Indira Nagar Scrap & Kabadiwala Co-Op",
-        "type": "Commercial Scrap Buyer (Buys in ₹)",
-        "streams": ["Paper", "Cardboard", "Metal", "Plastic"],
-        "buys_for_cash": True,
-        "lat": 19.9723,
-        "lon": 73.7805,
-        "city": "Nashik",
-        "hours": "8:30 AM – 6:30 PM",
-        "contact": "+91 98220 14590"
-    },
-    {
-        "name": "Ambad MIDC Authorized E-Waste & Metal Buyback Hub",
-        "type": "Certified E-Waste & Metal Buyer (Cash / Exchange)",
+        "name": "Ambad MIDC Metal & E-Waste Scrap Yard",
+        "type": "Certified Metal & E-Waste Buyer (Cash Payout)",
         "streams": ["E-Waste", "Metal", "Li-Ion Batteries"],
         "buys_for_cash": True,
         "lat": 19.9568,
         "lon": 73.7431,
         "city": "Nashik",
-        "hours": "9:00 AM – 5:30 PM",
-        "contact": "+91 98231 88421"
+        "hours": "9:00 AM – 6:00 PM",
+        "contact": "+91 98231 88421",
+        "query": "Scrap+Metal+and+E-Waste+Recycler+Ambad+MIDC+Nashik"
     },
     {
-        "name": "Panchavati Biomethanation & Compost Unit",
-        "type": "Organic Waste / Wet Compost Processing",
+        "name": "Panchavati Compost & Organic Waste Facility",
+        "type": "Municipal Organic Waste / Biomethanation",
         "streams": ["Food Scrap", "Fruit Peels", "Vegetable Waste"],
         "buys_for_cash": False,
-        "lat": 20.0086,
-        "lon": 73.7922,
+        "lat": 20.0150,
+        "lon": 73.7950,
         "city": "Nashik",
         "hours": "7:00 AM – 7:00 PM",
-        "contact": "NMC Green Energy Cell"
+        "contact": "NMC Compost Cell",
+        "query": "Municipal+Compost+Plant+Panchavati+Nashik"
     },
     {
-        "name": "SWaCH Cooperative Dry Waste & Scrap Depot",
+        "name": "SWaCH Scrap & Dry Recyclable Depot",
         "type": "Cooperative Scrap Buyer (Buys in ₹)",
         "streams": ["Paper", "Cardboard", "Plastic", "Metal"],
         "buys_for_cash": True,
@@ -180,18 +184,20 @@ FACILITIES_DB = [
         "lon": 73.8567,
         "city": "Pune",
         "hours": "8:00 AM – 5:00 PM",
-        "contact": "+91 20 2567 4412"
+        "contact": "+91 20 2567 4412",
+        "query": "SWaCH+Pune+Waste+Recycling+Depot"
     },
     {
-        "name": "EcoReco Authorized E-Waste Recycler Hub",
-        "type": "Certified E-Waste Recycler Hub",
+        "name": "EcoReco Authorized E-Waste Hub",
+        "type": "Certified E-Waste Recycler",
         "streams": ["E-Waste", "IT Hardware", "Batteries"],
         "buys_for_cash": True,
         "lat": 19.1136,
         "lon": 72.8697,
         "city": "Mumbai",
         "hours": "9:30 AM – 6:00 PM",
-        "contact": "+91 22 4005 2020"
+        "contact": "+91 22 4005 2020",
+        "query": "Eco+Recycling+Limited+E-Waste+Mumbai"
     }
 ]
 
@@ -687,12 +693,13 @@ with tab_scan:
                                 stream_fit = (rule["stream_match"] in fac["streams"]) if rule["stream_match"] else False
                                 dist = haversine_distance(st.session_state.user_lat, st.session_state.user_lon, fac["lat"], fac["lon"])
                                 if stream_fit or dist < 25.0:
+                                    nav_url = f"https://www.google.com/maps/search/?api=1&query={fac['query']}"
                                     nearby_matches.append({
                                         "Facility": fac["name"],
                                         "Type": fac["type"],
                                         "Distance": f"{dist:.1f} km away",
                                         "Terms": "💵 Buys for Cash" if fac["buys_for_cash"] else "🆓 Free Drop-Off",
-                                        "Directions": f"https://www.google.com/maps/dir/?api=1&destination={fac['lat']},{fac['lon']}"
+                                        "Directions": nav_url
                                     })
                             if nearby_matches:
                                 top_fac = nearby_matches[0]
@@ -855,7 +862,7 @@ with tab_analytics:
 # ==========================================
 with tab_validation:
     st.subheader("🧪 Hackathon Theme Track Validation & Empirical Evidence")
-    st.write("Municipal Material Recovery Facilities (MRFs) lose up to **30–40% of recyclable batches** due to *wish-cycling*. Here is how WasteSight AI Pro proves contamination reduction:")
+    st.write("Municipal Material Recovery Facilities (MRFs) lose up to **30–40% of recyclable batches** due to *wish-cycling*[cite: 8]. Here is how WasteSight AI Pro proves contamination reduction:")
 
     # 1. Interactive Wish-Cycling Quiz
     st.markdown("#### 1. Interactive Wish-Cycling Contamination Benchmark")
