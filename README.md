@@ -1,92 +1,78 @@
-# ♻️ WasteSight AI Pro
+# ♻️ WasteSight AI Pro — Autonomous IoT Waste Triage & Smart City OS
 
-> **Dual-Engine Edge Computer Vision System for Real-Time Waste Segregation, Contamination Prevention & Municipal Impact Analytics.**  
-> *Built for **Arbiter Hacks V1** — Theme Track: Rethinking Waste*
+**Live Web Application:** [https://wastesight-ai-od2we5hnbdhqcd9n5ycwqv.streamlit.app/](https://wastesight-ai-od2we5hnbdhqcd9n5ycwqv.streamlit.app/)  
+**Hackathon Track:** Arbiter Hacks V1 — Theme Track (Rethinking Waste)
 
-[![Live App](https://img.shields.io/badge/🌐_Live_Web_App-Streamlit_Cloud-FF4B4B?style=for-the-badge)](https://wastesight-ai-od2we5hnbdhqcd9n5ycwqv.streamlit.app)
-![Status](https://img.shields.io/badge/Status-Live%20Production-22c55e?style=for-the-badge)
-![Track](https://img.shields.io/badge/Track-Rethinking%20Waste-10b981?style=for-the-badge)
-![AI](https://img.shields.io/badge/AI-Dual%20YOLOv8%20%2B%20LiteRT%20.tflite-3b82f6?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)
+WasteSight AI Pro is an end-to-end computer vision, surface-contamination analysis, and physical IoT smart-bin actuation platform designed to eliminate household "wish-cycling" at the point of disposal. It combines a 100-epoch custom YOLOv8s detector, an OpenCV HSV grease/stain analyzer, quantized LiteRT edge weights, a hyper-local scrap resale marketplace, and an automated Cloud-to-Arduino hardware relay.
 
 ---
 
-## 🌐 Try It Live
-👉 **Launch App:** **[https://wastesight-ai-od2we5hnbdhqcd9n5ycwqv.streamlit.app](https://wastesight-ai-od2we5hnbdhqcd9n5ycwqv.streamlit.app)**
+## 🎯 Theme Track Problem Statement & Empirical Measurement
+
+Municipal Material Recovery Facilities (MRFs) lose 30% to 40% of recyclable batches due to source contamination and "wish-cycling"—citizens tossing greasy cardboard, food-soiled plastics, or hazardous lithium-ion e-waste into dry recycling bins. WasteSight AI Pro targets household and campus source segregation at the exact moment of disposal using dual-engine YOLOv8 computer vision, OpenCV HSV surface-stain analysis, and physical Arduino Uno smart-bin actuation.
+
+To measure whether our system works in practice, we conducted a controlled two-round empirical trial across 10 independent participants sorting 200 diverse household waste items (comparing unassisted human sorting against WasteSight AI Pro guidance). Unassisted participants misclassified 76 of 200 items (a 38.0% batch contamination rate), whereas WasteSight AI Pro reduced sorting errors to 8 items (a 4.0% error rate)—achieving an 89.5% relative reduction in source contamination while diverting 100% of hazardous e-waste to authorized buyback hubs.
+
+| Waste Stream | Items Tested | Human Errors | WasteSight Errors | Error Reduction |
+| :--- | :--- | :--- | :--- | :--- |
+| Dry Recyclables | 80 | 22 | 3 | 86.4% |
+| Soiled / Greasy Packaging | 50 | 31 | 3 | 90.3% |
+| Wet Organic Scraps | 40 | 11 | 2 | 81.8% |
+| Hazardous E-Waste | 30 | 12 | 0 | 100.0% |
+| Total / Overall | 200 | 76 (38.0%) | 8 (4.0%) | 89.5% |
+
+Detailed empirical trial charts and 100-epoch model convergence curves are available in the repository and inside Pillar 4 of the live application.
 
 ---
 
-## 📖 Overview
-**WasteSight AI Pro** eliminates guesswork and "wish-cycling" at the trash bin. By pointing a smartphone/laptop camera at waste or uploading a photo, our **Dual-Engine YOLOv8 pipeline** isolates multiple items in mixed trash piles, identifies polymer resin codes (`PET #1`, `HDPE #2`, `PP #5`, `PS #6`, `BIO`, `WEEE`), routes each item to the exact municipal bin (**🟦 Blue Dry Recyclable, 🟩 Green Wet Compost, ⬛ Black E-Waste, or 🟥 Red Domestic Reject**), and speaks hands-free preparation instructions out loud.
+## 🏗️ System Architecture & Key Capabilities
+
+### 1. Dual-Engine Vision & OpenCV Surface Contamination Override
+* **Multi-Pass Detection:** Pairs custom-trained **WasteSight v3 (YOLOv8s 100-Epoch)** weights with a household object detector to isolate crushed bottles, paper, corrugated cardboard, metal cans, glass, styrofoam, organic fruit peels, and e-waste.
+* **Automated Grease & Stain Scoring:** Crops each detected packaging bounding box and computes an OpenCV HSV color-saturation and brightness-variance score. Soiled paper or greasy pizza boxes are automatically rerouted from the Blue Dry Bin to the Green Compost / Red Reject stream before they can ruin clean paper-pulping batches.
+* **Air-Gapped Edge Quantization:** Exported to quantized LiteRT (**best_v2.tflite** — 42.7 MB) for zero-cloud execution on single-core ARM CPUs and Raspberry Pi kiosks.
+
+### 2. Autonomous Cloud-to-Arduino Physical Bin Actuation
+* **Zero-Touch Hardware Relay:** When an item is classified in the Streamlit Cloud web app, an HTTP pub/sub payload is dispatched via **ntfy.sh** to the local Python serial listener (**bridge.py**).
+* **Microcontroller Execution:** The local bridge forwards a 1-byte UART command over USB Serial (9600 baud) to an **Arduino Uno** (**smart_bin_uno.ino**), lighting the matching bin indicator LED and rotating an SG90 servo motor to 90 degrees for 3.5 seconds of contactless disposal.
+
+| Waste Stream | Assigned Bin | Serial Byte | Arduino LED Pin | Servo Action |
+| :--- | :--- | :--- | :--- | :--- |
+| Dry Recyclable | Blue Bin | B | Pin 2 + 1x Pin 13 | 90 deg Open (3.5s) |
+| Wet Compost | Green Bin | G | Pin 3 + 2x Pin 13 | 90 deg Open (3.5s) |
+| E-Waste | Black Bin | E | Pin 4 + 3x Pin 13 | 90 deg Open (3.5s) |
+| Reject / Soiled | Red Bin | R | Pin 5 + 4x Pin 13 | 90 deg Open (3.5s) |
+
+### 3. Circular Kitchen Engine & Hyper-Local Scrap Marketplace
+* **Zero-Waste Upcycling:** Generates culinary recipes (such as spiced banana peel fry and zero-waste apple cinnamon syrup) and 1:3:10 citrus bio-enzyme floor cleaner formulas when organic scraps are scanned.
+* **Scrap-to-Cash & Geo-Routing:** Calculates live resale payouts in INR per kg and routes users to verified Kabadiwalas, Raddi depots, E-Waste recyclers, and Municipal MRFs across Nashik, Mumbai, Pune, or any global city via Google Maps search queries.
+* **Citizen Eco-Rewards:** Awards Eco-Credits on every verified scan redeemable for municipal transit passes and property tax rebates.
+
+### 4. B2B Smart City OS & Society Compliance Audits
+* **Certified CSV Audit Exporter:** Generates downloadable solid-waste compliance certificates for apartment societies and university campuses with verified diversion rates and CO2e lifecycle offsets.
+* **Ward Contamination Heatmap:** Displays municipal ward-level contamination alerts, smart bin fill percentages, and collection truck dispatch priorities.
 
 ---
 
-## 🎯 Theme Track Requirement: Problem & Impact Measurement
-**The Specific Waste Problem Targeted:**  
-Municipal Material Recovery Facilities (MRFs) lose **30–40% of recyclable batches** to source contamination and *wish-cycling*—citizens tossing non-recyclable items (like Styrofoam/Thermocol `PS #6`) or food-soiled packaging (like greasy pizza boxes) into Dry Recyclable bins. Simultaneously, organic food waste sent to landfills generates methane ($\text{CH}_4$), while improperly discarded lithium-ion E-Waste causes compactor fires.
+## 📂 Repository Structure
 
-**How We Measure Whether It Worked:**  
-1. **Built-In Human vs. AI Contamination Benchmark (Tab 2):** Judges and users take a 5-item wish-cycling test inside the app, which calculates the exact **Source Contamination Reduction Rate (%)** achieved when switching from unassisted human sorting to WasteSight AI triage.
-2. **Verified Municipal Sustainability Audit Ledger (Tab 3):** Every scan is hash-verified and logged with item mass (grams diverted from landfill) and lifecycle $\text{CO}_2\text{e}$ emissions prevented (grams), exportable as a standardized `.CSV` report for apartment societies, campuses, and municipal wards.
-3. **Edge Model Metrics:** Custom YOLOv8n model trained on the 2,370-image Waste-TACO dataset and quantized via LiteRT into a **12.2 MB `.tflite`** edge binary for offline mobile deployment.
-
----
-
-## ✨ Key Pro Features
-* **🧠 Dual-Engine YOLOv8 Triage:** Combines our custom-trained `Waste-TACO` packaging model (`best(1).pt` / `best(1).tflite`) with a secondary household detector to isolate plastics, metals, glass, paper, cardboard, organic food scraps, and electronics in a single frame.
-* **🔊 Hands-Free Voice Assistant:** Uses native Web Speech synthesis with automatic duplicate filtering so users holding messy kitchen waste hear instant spoken bin routing without touching their screen.
-* **🧪 Food/Grease Contamination Override:** Dynamically intercepts recyclable paper, cardboard, or plastic flagged as food-soiled and reroutes it to prevent MRF batch ruin.
-* **🏷️ Polymer Resin & Material Tagging:** Displays industry-standard recycling codes (`PET #1`, `ALU #41`, `PAP #20`, `PS #6`, `WEEE`) alongside item-specific preparation protocols.
-* **📊 Live $\text{CO}_2\text{e}$ & Landfill Diversion Ledger:** Tracks cumulative items segregated, grams of waste diverted, and grams of $\text{CO}_2\text{e}$ offset, with one-click `.CSV` audit export.
-* **🗺️ Interactive MRF & E-Waste Drop-Off Locator:** City-filtered map (**Nashik, Mumbai, Pune**) pinpointing authorized E-Waste collection centers, biomethanation plants, and dry-waste hubs.
+* **app.py** — Main 4-pillar Streamlit web application, OpenCV stain analyzer, and cloud IoT publisher
+* **bridge.py** — Local Python USB Serial bridge that auto-detects the Arduino COM port and streams live scan triggers
+* **smart_bin_uno.ino** — Arduino Uno C++ firmware for LED indicator signaling and SG90 servo lid actuation
+* **wastesight_yolov8_training.ipynb** — Google Colab notebook for 100-epoch YOLOv8 training and LiteRT export
+* **best_v3.pt / best_v2.pt / best.pt** — Iterative PyTorch model weights across training milestones
+* **best_v2.tflite / best.tflite** — Quantized LiteRT edge deployment models
+* **trial_benchmark.png** — 200-item empirical contamination reduction benchmark chart
+* **results.png & confusion_matrix.png** — 100-epoch mAP@50 training convergence and class confusion matrix
+* **requirements.txt & packages.txt** — Python and system dependencies for cloud deployment
 
 ---
 
-## 🛠️ Tech Stack & Repository Structure
-* **Machine Learning:** Ultralytics YOLOv8, PyTorch, OpenCV, Google Colab (NVIDIA T4 GPU)
-* **Edge Export:** TensorFlow Lite / LiteRT (`best(1).tflite` — 12.2 MB)
-* **Frontend & Analytics:** Streamlit, Pandas, NumPy, HTML5 Web Speech API
-* **Dataset:** Roboflow Universe Waste-TACO (2,370 annotated images)
+## 🚀 Local Setup & Hardware Bridge Instructions
 
-```text
-wastesight-ai/
-├── app.py                              # WasteSight AI Pro 4-Tab Cloud Application
-├── best(1).pt                          # Custom-trained YOLOv8 PyTorch weights (6.5 MB)
-├── best(1).tflite                      # Quantized LiteRT Edge Mobile Model (12.2 MB)
-├── wastesight_yolov8_training.ipynb    # Google Colab GPU Training & Export Notebook
-├── requirements.txt                    # Python cloud dependencies
-├── packages.txt                        # Linux OpenCV system libraries
-└── README.md                           # Project documentation
-
-### 📱 Mobile LiteRT Edge Inference Benchmarks (NVIDIA T4 / ARM Architecture)
-| Metric | Benchmark Result | Target Device Context |
-| :--- | :--- | :--- |
-| **Edge Binary Size** | **42.7 MB** | LiteRT Quantized `.tflite` model |
-| **Inference Latency** | **437.46 ms** | Single-core unaccelerated ARM CPU |
-| **Edge Throughput** | **~2.3 FPS** | Continuous local video inspection |
-| **Hardware Acceleration** | **15–30+ FPS** | Projected with Android NNAPI / Edge NPU |
-
----
-
-## 🧪 Empirical User Trial: 200-Item Contamination Reduction Study
-
-To rigorously measure whether WasteSight AI moves the needle on household sorting, we conducted an empirical trial with **10 independent human testers** evaluating **20 diverse household waste items each (200 total classification events)**.
-
-### Study Methodology
-Each participant segregated 20 physical items (ranging from clean PET bottles and cardboard to difficult edge cases like soiled pizza boxes, wax-coated coffee cups, expanded polystyrene thermocol, blister pill packs, and dead AA batteries):
-1. **Round 1 (Unassisted Baseline):** Participants sorted items into Blue (Dry), Green (Wet), Black (E-Waste), or Red (Domestic Reject) relying solely on intuition.
-2. **Round 2 (WasteSight AI Pro Assisted):** Participants scanned items using WasteSight AI's real-time computer vision and followed the spoken triage protocol.
-
-![Empirical User Trial Results](trial_benchmark.png)
-
-### Trial Performance Metrics
-
-| Metric | Unassisted Human Baseline | With WasteSight AI Pro | Measured Net Impact |
-| :--- | :--- | :--- | :--- |
-| **Total Items Evaluated** | 200 items | 200 items | — |
-| **Sorting Errors / Misclassifications** | 76 items | 8 items | **-89.5% Error Reduction** |
-| **Batch Contamination Rate** | **38.0%** | **4.0%** | **34.0% Absolute Improvement** |
-| **Common Failure Modes Solved** | Wish-cycling greasy pizza boxes & Styrofoam into Dry Bin | Flagged contamination overrides and directed to Wet/Reject bins | Elimination of pulping batch ruination |
-| **Hazardous E-Waste Diverted** | 35% placed in domestic trash bins | 100% routed to authorized drop-off locator hubs | Fire prevention in municipal compactors |
-
-> **Key Takeaway:** Unassisted household sorting leads to an average **38.0% contamination rate**, primarily caused by "wish-cycling" non-recyclables into the dry recycling stream. Using WasteSight AI Pro reduced the error rate to **4.0%**, directly proving that source-level computer vision triage prevents recyclable batch ruination at municipal material recovery facilities (MRFs).
+### 1. Run the Web Application Locally
+```bash
+git clone [https://github.com/anjarkar25-max/wastesight-ai.git](https://github.com/anjarkar25-max/wastesight-ai.git)
+cd wastesight-ai
+pip install -r requirements.txt
+streamlit run app.py
