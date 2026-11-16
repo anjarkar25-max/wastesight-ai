@@ -1,6 +1,6 @@
 # ♻️ WasteSight AI Pro — Autonomous IoT Waste Triage & Smart City OS
 
-**Live Web Application:** [https://wastesight-ai-od2we5hnbdhqcd9n5ycwqv.streamlit.app/](https://wastesight-ai-od2we5hnbdhqcd9n5ycwqv.streamlit.app/)  
+**Live Web Application:** https://wastesight-ai-od2we5hnbdhqcd9n5ycwqv.streamlit.app/  
 **Hackathon Track:** Arbiter Hacks V1 — Theme Track (Rethinking Waste)
 
 WasteSight AI Pro is an end-to-end computer vision, surface-contamination analysis, and physical IoT smart-bin actuation platform designed to eliminate household "wish-cycling" at the point of disposal. It combines a 100-epoch custom YOLOv8s detector, an OpenCV HSV grease/stain analyzer, quantized LiteRT edge weights, a hyper-local scrap resale marketplace, and an automated Cloud-to-Arduino hardware relay.
@@ -19,9 +19,7 @@ To measure whether our system works in practice, we conducted a controlled two-r
 | Soiled / Greasy Packaging | 50 | 31 | 3 | 90.3% |
 | Wet Organic Scraps | 40 | 11 | 2 | 81.8% |
 | Hazardous E-Waste | 30 | 12 | 0 | 100.0% |
-| Total / Overall | 200 | 76 (38.0%) | 8 (4.0%) | 89.5% |
-
-Detailed empirical trial charts and 100-epoch model convergence curves are available in the repository and inside Pillar 4 of the live application.
+| **Total / Overall** | **200** | **76 (38.0%)** | **8 (4.0%)** | **89.5%** |
 
 ---
 
@@ -71,8 +69,19 @@ Detailed empirical trial charts and 100-epoch model convergence curves are avail
 ## 🚀 Local Setup & Hardware Bridge Instructions
 
 ### 1. Run the Web Application Locally
-```bash
-git clone [https://github.com/anjarkar25-max/wastesight-ai.git](https://github.com/anjarkar25-max/wastesight-ai.git)
-cd wastesight-ai
-pip install -r requirements.txt
-streamlit run app.py
+
+    git clone https://github.com/anjarkar25-max/wastesight-ai.git
+    cd wastesight-ai
+    pip install -r requirements.txt
+    streamlit run app.py
+
+### 2. Flash and Connect the Arduino Uno Smart Bin
+
+1. Open **smart_bin_uno.ino** in the Arduino IDE, select **Arduino Uno** and your active USB port (such as COM3), and click **Upload**.
+2. Connect your SG90 servo signal wire to **Pin 9** (5V and GND to power) and indicator LEDs to **Pins 2, 3, 4, and 5** (built-in **Pin 13** LED also pulses automatically).
+3. Start the automated cloud-to-serial listener on your computer:
+
+    pip install pyserial requests
+    python bridge.py
+
+4. Scan any waste item on the live Streamlit Cloud link or click the sidebar test buttons (**B**, **G**, **E**, **R**) to watch the physical Arduino Uno actuate in real time.
